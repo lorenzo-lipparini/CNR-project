@@ -1,0 +1,22 @@
+{
+  "name": "cnr-project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lorenzo-lipparini/CNR-project.git"
+  },
+  "author": "Lorenzo Lipparini",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lorenzo-lipparini/CNR-project/issues"
+  },
+  "homepage": "https://github.com/lorenzo-lipparini/CNR-project#readme",
+  "dependencies": {
+    "p5": "^0.6.0"
+  }
+}
