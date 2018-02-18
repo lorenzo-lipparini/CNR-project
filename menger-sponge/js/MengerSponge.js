@@ -61,23 +61,23 @@ class MengerSponge extends Cube {
     // Keep a reference to every child Cube
 
     let smallerCube = (relativePosX, relativePosY, relativePosZ) => {
-      return new Cube(new p5.Vector(this.pos.x + relativePosX, this.pos.y + relativePosY, this.pos.z + relativePosZ), smallSide / 3);
+      return new Cube(new p5.Vector(this.pos.x + relativePosX, this.pos.y + relativePosY, this.pos.z + relativePosZ), smallSide);
     };
 
-    for (let y = -smallSide; y <= smallSide; y++) {
+    for (let y = -smallSide; y <= smallSide; y += smallSide) {
       this.smallerCubes.push(smallerCube(0, y, 0));
     }
-
-    this.smallerCubes.push(smallerCube(+smallSide, 0, +smallSide));
-    this.smallerCubes.push(smallerCube(+smallSide, 0, -smallSide));
-    this.smallerCubes.push(smallerCube(-smallSide, 0, +smallSide));
-    this.smallerCubes.push(smallerCube(-smallSide, 0, -smallSide));
+    
+    this.smallerCubes.push(smallerCube(0, 0, +smallSide));
+    this.smallerCubes.push(smallerCube(0, 0, -smallSide));
+    this.smallerCubes.push(smallerCube(+smallSide, 0, 0));
+    this.smallerCubes.push(smallerCube(-smallSide, 0, 0));
 
   }
 
   show() {
 
-    if (this.iterations == 0) {
+    if (this.iterations === 0) {
       super.show();
       return;
     }
@@ -89,6 +89,62 @@ class MengerSponge extends Cube {
     for (let cube of this.smallerCubes) {
       cube.show();
     }
+
+  }
+
+  animateAll(...params) {
+
+    if (this.iterations === 0) {
+      return super.animate(...params);
+    }
+
+    let returnPromise; // Just take a random one, since they all finish simultaneously
+
+    for (let mengerSponge of this.smallerSponges) {
+      mengerSponge.animateAll(...params);
+    }
+
+    for (let cube of this.smallerCubes) {
+      returnPromise = cube.animate(...params);
+    }
+
+    return returnPromise;
+
+  }
+
+  animateSmallerSponges(...params) {
+
+    if (this.iterations === 0) {
+      return super.animate(...params);
+    }
+
+    let returnPromise; // Just take a random one, since they all finish simultaneously
+
+    for (let mengerSponge of this.smallerSponges) {
+      returnPromise = mengerSponge.animateSmallerSponges(...params);
+    }
+
+    return returnPromise;
+
+  }
+
+  animateSmallerCubes(...params) {
+
+    if (this.iterations === 0) {
+      return;
+    }
+
+    let returnPromise; // Just take a random one, since they all finish simultaneously
+
+    for (let mengerSponge of this.smallerSponges) {
+      mengerSponge.animateSmallerCubes(...params);
+    }
+
+    for (let cube of this.smallerCubes) {
+      returnPromise = cube.animate(...params);
+    }
+
+    return returnPromise;
 
   }
 
