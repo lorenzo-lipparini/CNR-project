@@ -2,9 +2,9 @@
 
 class MengerSponge extends Cube {
 
-  constructor(pos, side, iterations) {
+  constructor(pos, side, color, iterations) {
 
-    super(pos, side);
+    super(pos, side, color);
 
     this.iterations = iterations;
     if (this.iterations === 0) {
@@ -30,7 +30,7 @@ class MengerSponge extends Cube {
     // Keep a reference to every child MengerSponge
 
     let smallerSponge = (relativePosX, relativePosY, relativePosZ) => {
-      return new MengerSponge(new p5.Vector(this.pos.x + relativePosX, this.pos.y + relativePosY, this.pos.z + relativePosZ), smallSide, this.iterations - 1);
+      return new MengerSponge(new p5.Vector(this.pos.x + relativePosX, this.pos.y + relativePosY, this.pos.z + relativePosZ), smallSide, this.color, this.iterations - 1);
     };
 
     this.smallerSponges = [];
@@ -61,7 +61,7 @@ class MengerSponge extends Cube {
     // Keep a reference to every child Cube
 
     let smallerCube = (relativePosX, relativePosY, relativePosZ) => {
-      return new Cube(new p5.Vector(this.pos.x + relativePosX, this.pos.y + relativePosY, this.pos.z + relativePosZ), smallSide);
+      return new Cube(new p5.Vector(this.pos.x + relativePosX, this.pos.y + relativePosY, this.pos.z + relativePosZ), smallSide, this.color);
     };
 
     for (let y = -smallSide; y <= smallSide; y += smallSide) {

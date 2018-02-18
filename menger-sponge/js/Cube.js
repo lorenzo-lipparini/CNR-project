@@ -2,9 +2,10 @@
 
 class Cube {
 
-  constructor(pos, side) {
+  constructor(pos, side, color) {
     this.pos = pos;
     this.side = side;
+    this.color = color;
 
     this.animations = [];
   }
@@ -13,7 +14,8 @@ class Cube {
     this.update();
 
     translate(this.pos.x, this.pos.y, this.pos.z);
-    
+
+    ambientMaterial(this.color);
     box(this.side);
     
     translate(-this.pos.x, -this.pos.y, -this.pos.z);
@@ -24,8 +26,8 @@ class Cube {
       this.animations.push({
         update,
         duration,
-        callback: resolve,
-        beginFrame: frameCount
+        beginFrame: frameCount,
+        callback: resolve
       });
     });
   }
@@ -41,10 +43,10 @@ class Cube {
       
       if (progress > 1) { // IF the animation has finished
         progress = 1; // Run the last frame
-        this.animations.splice(i, 1); // Remove the animation
 
         animation.callback();
 
+        this.animations.splice(i, 1); // Remove the animation
         i--; // Necessary, since an element has been removed
       }
 
