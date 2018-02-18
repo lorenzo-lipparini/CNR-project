@@ -1,6 +1,6 @@
 'use strict'
 
-class Box {
+class Cube {
 
   constructor(pos, side) {
     this.pos = pos;
@@ -8,11 +8,11 @@ class Box {
   }
 
   show() {
-    translate(pos.x, pos.y, pos.z);
+    translate(this.pos.x, this.pos.y, this.pos.z);
     
-    box(side);
+    box(this.side);
     
-    translate(-pos.x, -pos.y, -pos.z);
+    translate(-this.pos.x, -this.pos.y, -this.pos.z);
   }
 
 }
