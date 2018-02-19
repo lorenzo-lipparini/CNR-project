@@ -13,7 +13,7 @@ function setup() {
 
   defaultColor = color(50, 100, 255);
 
-  mengerSponge = new MengerSponge(new p5.Vector(0, 0, 0), 300, defaultColor, iterations)
+  mengerSponge = new MengerSponge(new p5.Vector(0, 0, 0), 300, defaultColor, iterations);
 
   frameRate(60);
 
@@ -45,37 +45,15 @@ async function main() {
 
   await wait(60);
 
-  let lastAnimation;
-
-  for (let cube of mengerSponge.smallerCubes) {
-    lastAnimation = cube.animate(60, redFlash);
-  }
-
-  await lastAnimation;
-
-  for (let cube of mengerSponge.smallerCubes) {
-    lastAnimation = cube.animate(60, scaleDown);
-  }
-
-  await lastAnimation;
+  await mengerSponge.animateSmallerCubes(1, 60, redFlash);
+  
+  await mengerSponge.animateSmallerCubes(1, 60, scaleDown);
 
   await wait(20);
 
-  for (let smallerSponge of mengerSponge.smallerSponges) {
-    for (let cube of smallerSponge.smallerCubes) {
-      lastAnimation = cube.animate(60, redFlash);
-    }
-  }
+  await mengerSponge.animateSmallerCubes(2, 60, redFlash);
 
-  await lastAnimation;
-
-  for (let smallerSponge of mengerSponge.smallerSponges) {
-    for (let cube of smallerSponge.smallerCubes) {
-      lastAnimation = cube.animate(60, scaleDown);
-    }
-  }
-
-  await lastAnimation;
+  await mengerSponge.animateSmallerCubes(2, 60, scaleDown);
 
 }
 

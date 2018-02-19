@@ -24,8 +24,8 @@ class Cube {
   animate(duration, update) {
     return new Promise(resolve => {
       this.animations.push({
-        update,
         duration,
+        update,
         beginFrame: frameCount,
         callback: resolve
       });
@@ -47,7 +47,7 @@ class Cube {
         animation.callback();
 
         this.animations.splice(i, 1); // Remove the animation
-        i--; // Necessary, since an element has been removed
+        i--; // Necessary, since an element has been removed from the array
       }
 
       animation.update(this, progress);
