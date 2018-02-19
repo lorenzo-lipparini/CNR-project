@@ -19,7 +19,32 @@ class MengerSponge extends Cube {
     // Smaller cubes which are not part of the fractal (used in the animation process)
     this.smallerCubes = [];
     this.createSmallerCubes();
+
+    // Make this property true to show the cubes which are not part of the fractal (used in the animation process)
+    this.showRemovedCubes = false;
     
+  }
+
+  get showRemovedCubes() {
+    return this._showRemovedCubes;
+  }
+
+  set showRemovedCubes(value) {
+    // Prevent useless recursion
+    if (value === this._showRemovedCubes) {
+      return this._showRemovedCubes;
+    }
+
+    this._showRemovedCubes = value;
+    
+    if (this.iterations !== 0) {
+      // Assign the poperty recursively to every child sponge
+      for (let mengerSponge of this.smallerSponges) {
+        mengerSponge.showRemovedCubes = this._showRemovedCubes;
+      }
+    }
+
+    return this._showRemovedCubes;
   }
 
   createSmallerSponges() {
@@ -84,9 +109,11 @@ class MengerSponge extends Cube {
     for (let mengerSponge of this.smallerSponges) {
       mengerSponge.show();
     }
-     
-    for (let cube of this.smallerCubes) {
-      cube.show();
+
+    if (this.showRemovedCubes) {
+      for (let cube of this.smallerCubes) {
+        cube.show();
+      }
     }
 
   }
@@ -111,7 +138,7 @@ class MengerSponge extends Cube {
     }
 
     return returnPromise;
-
+    
   }
 
 }

@@ -22,6 +22,8 @@ function setup() {
 
 async function main() {
 
+  mengerSponge.showRemovedCubes = true;
+
   function scaleDown(target, progress) {
     if (!target.originalSide) {
       target.originalSide = target.side;
