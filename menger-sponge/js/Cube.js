@@ -7,11 +7,11 @@ class Cube {
     this.side = side;
     this.color = color;
 
-    this.animations = [];
+    this._animations = [];
   }
 
   show() {
-    this.update();
+    this._updateAnimations();
 
     translate(this.pos.x, this.pos.y, this.pos.z);
 
@@ -23,7 +23,7 @@ class Cube {
 
   animate(duration, update) {
     return new Promise(resolve => {
-      this.animations.push({
+      this._animations.push({
         duration,
         update,
         beginFrame: frameCount,
@@ -32,27 +32,27 @@ class Cube {
     });
   }
 
-  update() {
+  _updateAnimations() {
     let currentFrame = frameCount;
 
-    for (let i = 0; i < this.animations.length; i++) {
+    for (let i = 0; i < this._animations.length; i++) {
 
-      let animation = this.animations[i];      
+      let animation = this._animations[i];      
 
       let progress = (currentFrame - animation.beginFrame) / animation.duration;
       
-      if (progress > 1) { // IF the animation has finished
+      if (progress > 1) { // If the animation has finished
         progress = 1; // Run the last frame
 
         animation.callback();
 
-        this.animations.splice(i, 1); // Remove the animation
+        this._animations.splice(i, 1); // Remove the animation
         i--; // Necessary, since an element has been removed from the array
       }
 
       animation.update(this, progress);
-
     }
+
   }
 
 }

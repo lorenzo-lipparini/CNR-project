@@ -13,119 +13,118 @@ class MengerSponge extends Cube {
   
 
     // Recursive part of the fractal
-    this.smallerSponges = [];
-    this.createSmallerSponges();
+    this.childSponges = [];
+    this._createChildSponges();
 
-    // Smaller cubes which are not part of the fractal (used in the animation process)
-    this.smallerCubes = [];
-    this.createSmallerCubes();
+    // Cubes which are not part of the fractal (used in the animation process)
+    this.excludedCubes = [];
+    this._createExcludedCubes();
 
     // Make this property true to show the cubes which are not part of the fractal (used in the animation process)
-    this.showRemovedCubes = false;
+    this.showExcludedCubes = false;
     
   }
 
-  get showRemovedCubes() {
-    return this._showRemovedCubes;
+  get showExcludedCubes() {
+    return this._showExcludedCubes;
   }
 
-  set showRemovedCubes(value) {
+  set showExcludedCubes(value) {
     // Prevent useless recursion
-    if (value === this._showRemovedCubes) {
-      return this._showRemovedCubes;
+    if (value === this._showExcludedCubes) {
+      return this._showExcludedCubes;
     }
 
-    this._showRemovedCubes = value;
+    this._showExcludedCubes = value;
     
     if (this.iterations !== 0) {
-      // Assign the poperty recursively to every child sponge
-      for (let mengerSponge of this.smallerSponges) {
-        mengerSponge.showRemovedCubes = this._showRemovedCubes;
+      // Recursively assign the poperty to every child sponge
+      for (let mengerSponge of this.childSponges) {
+        mengerSponge.showExcludedCubes = this._showExcludedCubes;
       }
     }
 
-    return this._showRemovedCubes;
+    return this._showExcludedCubes;
   }
 
-  createSmallerSponges() {
+  _createChildSponges() {
 
-    let smallSide = this.side / 3;
+    let childSide = this.side / 3;
 
-    // Create the direct child menger sponges and keep a reference to them
+    // Create the direct child Menger sponges and keep a reference to them
 
     // Helper function to create new sponges
-    let smallerSponge = (relativePosX, relativePosY, relativePosZ) => {
-      return new MengerSponge(new p5.Vector(this.pos.x + relativePosX, this.pos.y + relativePosY, this.pos.z + relativePosZ), smallSide, this.color, this.iterations - 1);
+    let addChildSponge = (relativePosX, relativePosY, relativePosZ) => {
+      this.childSponges.push(new MengerSponge(new p5.Vector(this.pos.x + relativePosX, this.pos.y + relativePosY, this.pos.z + relativePosZ), childSide, this.color, this.iterations - 1));
     };
 
-    for (let y = -smallSide; y <= smallSide; y += smallSide) {
+    for (let y = -childSide; y <= childSide; y += childSide) {
 
-      this.smallerSponges.push(smallerSponge(+smallSide, y, +smallSide));
-      this.smallerSponges.push(smallerSponge(+smallSide, y, -smallSide));
-      this.smallerSponges.push(smallerSponge(-smallSide, y, +smallSide));
-      this.smallerSponges.push(smallerSponge(-smallSide, y, -smallSide));
+      addChildSponge(+childSide, y, +childSide);
+      addChildSponge(+childSide, y, -childSide);
+      addChildSponge(-childSide, y, +childSide);
+      addChildSponge(-childSide, y, -childSide);
       
       if (y != 0) {
-        this.smallerSponges.push(smallerSponge(0, y, +smallSide));
-        this.smallerSponges.push(smallerSponge(0, y, -smallSide));
-        this.smallerSponges.push(smallerSponge(+smallSide, y, 0));
-        this.smallerSponges.push(smallerSponge(-smallSide, y, 0));
+        addChildSponge(0, y, +childSide);
+        addChildSponge(0, y, -childSide);
+        addChildSponge(+childSide, y, 0);
+        addChildSponge(-childSide, y, 0);
       }
 
     }
     
   }
 
-  createSmallerCubes() {
+  _createExcludedCubes() {
 
-    let smallSide = this.side / 3;
+    let childSide = this.side / 3;
 
     // Create the direct child cubes and keep a reference to them
 
     // Helper function to create new cubes
-    let smallerCube = (relativePosX, relativePosY, relativePosZ) => {
-      return new Cube(new p5.Vector(this.pos.x + relativePosX, this.pos.y + relativePosY, this.pos.z + relativePosZ), smallSide, this.color);
+    let addExcludedCube = (relativePosX, relativePosY, relativePosZ) => {
+      this.excludedCubes.push(new Cube(new p5.Vector(this.pos.x + relativePosX, this.pos.y + relativePosY, this.pos.z + relativePosZ), childSide, this.color));
     };
 
-    for (let y = -smallSide; y <= smallSide; y += smallSide) {
-      this.smallerCubes.push(smallerCube(0, y, 0));
+    for (let y = -childSide; y <= childSide; y += childSide) {
+      addExcludedCube(0, y, 0);
     }
     
-    this.smallerCubes.push(smallerCube(0, 0, +smallSide));
-    this.smallerCubes.push(smallerCube(0, 0, -smallSide));
-    this.smallerCubes.push(smallerCube(+smallSide, 0, 0));
-    this.smallerCubes.push(smallerCube(-smallSide, 0, 0));
+    addExcludedCube(0, 0, +childSide);
+    addExcludedCube(0, 0, -childSide);
+    addExcludedCube(+childSide, 0, 0);
+    addExcludedCube(-childSide, 0, 0);
 
   }
 
   show() {
 
     if (this.iterations === 0) {
-      // Non-iterative menger sponges are just cubes
+      // Non-iterative Menger sponges are just cubes
       super.show();
       return;
     }
 
-    for (let mengerSponge of this.smallerSponges) {
+    for (let mengerSponge of this.childSponges) {
       mengerSponge.show();
     }
 
-    if (this.showRemovedCubes) {
-      for (let cube of this.smallerCubes) {
+    if (this.showExcludedCubes) {
+      for (let cube of this.excludedCubes) {
         cube.show();
       }
     }
 
   }
 
-  animateSmallerCubes(iteration, ...params) {
-
+  animateExcludedCubes(iteration, ...params) {
     // NOTE: doesn't work if iteration > this.iterations, which makes sense
 
     let returnPromise; // Just take a random one, since they all finish simultaneously
 
     if (iteration === 1) { // In this case, it just refers to the child cubes of this MengerSponge
-      for (let cube of this.smallerCubes) {
+      for (let cube of this.excludedCubes) {
         returnPromise = cube.animate(...params);
       }
 
@@ -133,8 +132,8 @@ class MengerSponge extends Cube {
     }
     
     // If it doesn't refer to the cubes of this sponge, just delegate the direct child sponges
-    for (let mengerSponge of this.smallerSponges) {
-      returnPromise = mengerSponge.animateSmallerCubes(iteration - 1, ...params);
+    for (let mengerSponge of this.childSponges) {
+      returnPromise = mengerSponge.animateExcludedCubes(iteration - 1, ...params);
     }
 
     return returnPromise;

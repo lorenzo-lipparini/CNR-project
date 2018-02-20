@@ -22,7 +22,7 @@ function setup() {
 
 async function main() {
 
-  mengerSponge.showRemovedCubes = true;
+  mengerSponge.showExcludedCubes = true;
 
   function scaleDown(target, progress) {
     if (!target.originalSide) {
@@ -32,13 +32,16 @@ async function main() {
     target.side = (1 - progress) * target.originalSide;
   }
 
-  function redFlash(target, progress) {
+  function flash(target, progress) {
+    // let flashColor = lerpColor(defaultColor, color('red'), 0.75);
+    let flashColor = lerpColor(defaultColor, color('white'), 0.2);
+    
     if (progress <= 0.25) {
-      target.color = lerpColor(defaultColor, color('red'), 0.75);
+      target.color = flashColor;
     } else if (progress <= 0.5) {
       target.color = defaultColor;
     } else if (progress <= 0.75) {
-      target.color = lerpColor(defaultColor, color('red'), 0.75);
+      target.color = flashColor;
     } else {
       target.color = defaultColor;
     }
@@ -47,16 +50,13 @@ async function main() {
 
   await wait(60);
 
-  await mengerSponge.animateSmallerCubes(1, 60, redFlash);
+  for (let i = 1; i <= mengerSponge.iterations; i++) {
+    await mengerSponge.animateExcludedCubes(i, 60, flash);
   
-  await mengerSponge.animateSmallerCubes(1, 60, scaleDown);
+    await mengerSponge.animateExcludedCubes(i, 60, scaleDown);
 
-  await wait(20);
-
-  await mengerSponge.animateSmallerCubes(2, 60, redFlash);
-
-  await mengerSponge.animateSmallerCubes(2, 60, scaleDown);
-
+    await wait(20);
+  }
 }
 
 
