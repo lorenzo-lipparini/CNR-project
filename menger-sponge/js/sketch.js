@@ -1,7 +1,5 @@
 'use strict'
 
-let timers = [];
-
 let defaultColor;
 
 let iterations = 2;
@@ -48,14 +46,14 @@ async function main() {
   }
 
 
-  await wait(60);
+  await timer(60);
 
   for (let i = 1; i <= mengerSponge.iterations; i++) {
     await mengerSponge.animateExcludedCubes(i, 60, flash);
   
     await mengerSponge.animateExcludedCubes(i, 60, scaleDown);
 
-    await wait(20);
+    await timer(20);
   }
 }
 
@@ -64,12 +62,12 @@ let angle = 0;
 
 function draw() {
   
-  updateTimers();
+  timer.update();
+
 
   background(0);
 
   ambientLight(50, 50, 50);
-
   directionalLight(255, 255, 255, 0, -1, -1);
 
   rotateX(-0.2);
@@ -80,29 +78,4 @@ function draw() {
 
   mengerSponge.show();
 
-
-}
-
-
-function wait(duration) {
-  return new Promise(resolve => {
-    timers.push({
-      duration,
-      endFrame: frameCount + duration,
-      callback: resolve
-    });
-  });
-}
-
-function updateTimers() {
-  for (let i = 0; i < timers.length; i++) {
-    let timer = timers[i];
-
-    if (frameCount >= timer.endFrame) {
-      timer.callback();
-
-      timers.splice(i, 1);
-      i--;
-    }
-  }
 }
