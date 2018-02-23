@@ -1,10 +1,14 @@
 'use strict'
 
+
+const angularVelocity = 1/15 * (2 * Math.PI / 60);
+
 let defaultColor;
 
-let iterations = 2;
+const iterations = 2;
 
 let mengerSponge;
+
 
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
@@ -45,7 +49,7 @@ async function main() {
     }
   }
 
-
+  
   await timer(60);
 
   for (let i = 1; i <= mengerSponge.iterations; i++) {
@@ -55,6 +59,7 @@ async function main() {
 
     await timer(20);
   }
+  
 }
 
 
@@ -72,10 +77,10 @@ function draw() {
 
   rotateX(-0.2);
   rotateY(angle);
-  angle += 0.01;
+  angle += angularVelocity;
 
   noStroke();
-
+  
   mengerSponge.show();
 
 }

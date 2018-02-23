@@ -7,6 +7,8 @@ class MengerSponge extends Cube {
     super(pos, side, color);
 
     this.iterations = iterations;
+
+    // 0-iterations Menger sponges are just cubes, so they have no child elements
     if (this.iterations === 0) {
       return;
     }
@@ -43,8 +45,6 @@ class MengerSponge extends Cube {
         mengerSponge.showExcludedCubes = this._showExcludedCubes;
       }
     }
-
-    return this._showExcludedCubes;
   }
 
   _createChildSponges() {
@@ -101,7 +101,7 @@ class MengerSponge extends Cube {
   show() {
 
     if (this.iterations === 0) {
-      // Non-iterative Menger sponges are just cubes
+      // 0-iterations Menger sponges are just cubes
       super.show();
       return;
     }
@@ -131,13 +131,34 @@ class MengerSponge extends Cube {
       return returnPromise;
     }
     
-    // If it doesn't refer to the cubes of this sponge, just delegate the direct child sponges
+    // If it doesn't refer to the cubes of this sponge, just delegate the task to the direct child sponges
     for (let mengerSponge of this.childSponges) {
       returnPromise = mengerSponge.animateExcludedCubes(iteration - 1, ...params);
     }
 
     return returnPromise;
     
+  }
+
+  animateAllExcludedCubes(...params) {
+
+    // 0-iterations Menger sponges are just cubes, so they have no child excluded cubes to animate
+    if (this.iterations === 0) {
+      return;
+    }
+
+    let returnPromise; // Just take a random one, since they all finish simultaneously
+    
+    for (let cube of this.excludedCubes) {
+      returnPromise = cube.animate(...params);
+    }
+
+    for (let mengerSponge of this.childSponges) {
+      mengerSponge.animateAllExcludedCubes(...params);
+    }
+
+    return returnPromise;
+
   }
 
 }
