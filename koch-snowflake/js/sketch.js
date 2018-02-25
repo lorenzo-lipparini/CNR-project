@@ -1,12 +1,14 @@
 
-let kochSnowflake = new KochSnowflake(new p5.Vector(0, 0), 500, 1);
+let kochSnowflake = new KochSnowflake(new p5.Vector(0, 0), 500, 5);
 
 let animationDuration = 180;
 
 function setup() {
-  createCanvas(windowWidth, windowHeight);
+  createCanvas(1920, 1080);
 
   frameRate(60);
+
+  FrameCapture.acquire(180);
 }
 
 
@@ -40,4 +42,5 @@ function draw() {
 
   kochSnowflake.show();
 
+  FrameCapture.update();  
 }
