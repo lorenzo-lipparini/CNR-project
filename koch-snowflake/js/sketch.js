@@ -1,5 +1,5 @@
 
-let kochCurve = new KochCurve(new p5.Vector(-500, -200), new p5.Vector(500, -200), 5);
+let kochSnowflake = new KochSnowflake(new p5.Vector(0, 0), 500, 5);
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -17,5 +17,5 @@ function draw() {
   stroke(255);
   noFill();
 
-  kochCurve.show();
+  kochSnowflake.show();
 }

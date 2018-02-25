@@ -18,16 +18,16 @@ class KochCurve {
 
   _createChildCurves() {
 
-    const sin60 = 0.8660254037844386;
-
     let previousX = this.start.x;
     let previousY = this.start.y;
 
     // Helper function to create the child curves
     let addCurve = (endX, endY) => {
-      this.childCurves.push(new KochCurve(new p5.Vector(previousX, previousY), new p5.Vector(endX, endY), this.iterations - 1));
-      previousX = endX;
-      previousY = endY;
+      this.childCurves.push(new KochCurve(
+        new p5.Vector(previousX, previousY),
+        new p5.Vector((previousX = endX), (previousY = endY)),
+        this.iterations - 1
+      ));
     };
 
     let deltaX = this.end.x - this.start.x;
@@ -35,7 +35,8 @@ class KochCurve {
 
     addCurve(this.start.x + deltaX / 3, this.start.y + deltaY / 3);
 
-    let factor = 1 / 3 * (0.5 - sin60 * deltaY / deltaX);
+    const sin60 = 0.8660254037844386;
+    const factor = 1 / 3 * (0.5 - sin60 * deltaY / deltaX);
 
     addCurve(
       previousX + deltaX * factor,
