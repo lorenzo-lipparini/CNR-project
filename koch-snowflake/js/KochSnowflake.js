@@ -43,7 +43,7 @@ class KochSnowflake {
       curve._addVertices();
     }
 
-    endShape();
+    endShape(CLOSE);
   }
 
 }
