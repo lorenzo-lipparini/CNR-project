@@ -1,3 +1,4 @@
+'use strict'
 
 let kochSnowflake = new KochSnowflake(new p5.Vector(0, 0), 500, 5);
 

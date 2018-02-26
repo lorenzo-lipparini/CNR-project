@@ -14,6 +14,7 @@ class KochSnowflake {
   _createChildCurves() {
     
     const csc60 = 1.1547005383792515;
+    
     let previousX = 0;
     let previousY = this.side / 2 * csc60;
 
@@ -44,6 +45,12 @@ class KochSnowflake {
     }
 
     endShape(CLOSE);
+  }
+
+  incrementIterations() {
+    for (let curve of this.childCurves) {
+      curve.incrementIterations();
+    }
   }
 
 }

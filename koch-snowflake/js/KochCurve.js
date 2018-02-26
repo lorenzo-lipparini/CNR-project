@@ -8,12 +8,11 @@ class KochCurve {
     this.iterations = iterations;
 
     // 0-iterations Koch curves are just straight lines, so they have no child curves
-    if (this.iterations === 0) {
-      return;
+    if (this.iterations !== 0) {
+      this.childCurves = [];
+      this._createChildCurves();
     }
 
-    this.childCurves = [];
-    this._createChildCurves();
   }
 
   _createChildCurves() {
@@ -36,7 +35,7 @@ class KochCurve {
     addCurve(this.start.x + deltaX / 3, this.start.y + deltaY / 3);
 
     const sin60 = 0.8660254037844386;
-    const factor = 1 / 3 * (0.5 - sin60 * deltaY / deltaX);
+    const factor = 1/3 * (1/2 - sin60 * deltaY / deltaX);
 
     addCurve(
       previousX + deltaX * factor,
@@ -54,7 +53,7 @@ class KochCurve {
 
     this._addVertices();
 
-    // (*) Consecutive lines share a vertex, and in order to prevent it from being drawn two times
+    // (*) Consecutive lines share a vertex, so in order to prevent it from being drawn two times
     //     only the start vertex of each line is drawn. That means that the last vertex of the curve
     //     won't be drawn by _addVertices(), so it has to be done manually.
     vertex(this.end.x, this.end.y);
@@ -68,11 +67,32 @@ class KochCurve {
     if (this.iterations === 0) {
       // See (*)
       vertex(this.start.x, this.start.y);
+      
       return;
     }
     
     for (let curve of this.childCurves) {
       curve._addVertices();
+    }
+
+  }
+
+  // A fractal might need a higher definition during the animation, use this method
+  incrementIterations() {
+    this.iterations++;
+
+    // Simple case: this wasn't even a fractal
+    if (this.iterations === 1) {
+
+      this.childCurves = [];
+      this._createChildCurves();
+
+      return;
+    }
+
+    // If this had child elements already, delegate the task to the child curves
+    for (let curve of this.childCurves) {
+      curve.incrementIterations();
     }
 
   }
