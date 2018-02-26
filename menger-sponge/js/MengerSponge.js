@@ -9,18 +9,17 @@ class MengerSponge extends Cube {
     this.iterations = iterations;
 
     // 0-iterations Menger sponges are just cubes, so they have no child elements
-    if (this.iterations === 0) {
-      return;
+    if (this.iterations !== 0) {
+      
+      // Recursive part of the fractal
+      this.childSponges = [];
+      this._createChildSponges();
+
+      // Cubes which are not part of the fractal (used in the animation process)
+      this.excludedCubes = [];
+      this._createExcludedCubes(); 
+
     }
-  
-
-    // Recursive part of the fractal
-    this.childSponges = [];
-    this._createChildSponges();
-
-    // Cubes which are not part of the fractal (used in the animation process)
-    this.excludedCubes = [];
-    this._createExcludedCubes();
 
     // Make this property true to show the cubes which are not part of the fractal (used in the animation process)
     this.showExcludedCubes = false;
@@ -55,7 +54,10 @@ class MengerSponge extends Cube {
 
     // Helper function to create new sponges
     let addChildSponge = (relativePosX, relativePosY, relativePosZ) => {
-      this.childSponges.push(new MengerSponge(new p5.Vector(this.pos.x + relativePosX, this.pos.y + relativePosY, this.pos.z + relativePosZ), childSide, this.color, this.iterations - 1));
+      let newSponge = new MengerSponge(new p5.Vector(this.pos.x + relativePosX, this.pos.y + relativePosY, this.pos.z + relativePosZ), childSide, this.color, this.iterations - 1);
+      newSponge.showExcludedCubes = this.showExcludedCubes;
+      
+      this.childSponges.push(newSponge);
     };
 
     for (let y = -childSide; y <= childSide; y += childSide) {
@@ -158,6 +160,31 @@ class MengerSponge extends Cube {
     }
 
     return returnPromise;
+
+  }
+
+  // A fractal might need a higher definition during the animation, use this method
+  incrementIterations() {
+    this.iterations++;
+
+    // Simple case: this wasn't even a fractal
+    if (this.iterations === 1) {
+
+      // Create all the child elements of the fractal
+
+      this.childSponges = [];
+      this._createChildSponges();
+
+      this.excludedCubes = [];
+      this._createExcludedCubes();
+
+      return;
+    }
+
+    // If this had child elements already, delegate the task to the child sponges
+    for (let sponge of this.childSponges) {
+      sponge.incrementIterations();
+    }
 
   }
 

@@ -5,8 +5,6 @@ const angularVelocity = 1/15 * (2 * Math.PI / 60);
 
 let defaultColor;
 
-const iterations = 2;
-
 let mengerSponge;
 
 
@@ -15,7 +13,7 @@ function setup() {
 
   defaultColor = color(50, 100, 255);
 
-  mengerSponge = new MengerSponge(new p5.Vector(0, 0, 0), 300, defaultColor, iterations);
+  mengerSponge = new MengerSponge(new p5.Vector(0, 0, 0), 300, defaultColor, 0);
 
   frameRate(60);
 
@@ -52,10 +50,12 @@ async function main() {
   
   await timer(60);
 
-  for (let i = 1; i <= mengerSponge.iterations; i++) {
-    await mengerSponge.animateExcludedCubes(i, 60, flash);
+  while(mengerSponge.iterations < 3) {
+    mengerSponge.incrementIterations();
+
+    await mengerSponge.animateExcludedCubes(mengerSponge.iterations, 60, flash);
   
-    await mengerSponge.animateExcludedCubes(i, 60, scaleDown);
+    await mengerSponge.animateExcludedCubes(mengerSponge.iterations, 60, scaleDown);
 
     await timer(20);
   }
