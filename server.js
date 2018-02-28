@@ -12,7 +12,14 @@ const bodyParser = require('body-parser');
 const app = express();
 app.use(bodyParser.json({ limit: '1gb' })); // Virtually limitless
 
+
 app.use('/CNR', express.static('./'));
+
+// Make p5 and lib modules easier to import
+app.get('/p5.js', (req, res) => {
+  res.sendFile(__dirname + '/node_modules/p5/lib/p5.min.js');
+});
+app.use('/lib', express.static('./lib'));
 
 
 let receivedFrames = 0;
