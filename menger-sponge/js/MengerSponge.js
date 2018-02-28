@@ -1,6 +1,7 @@
-'use strict'
 
-class MengerSponge extends Cube {
+import Cube from './Cube.js'; 
+
+export default class MengerSponge extends Cube {
 
   constructor(pos, side, color, iterations) {
 

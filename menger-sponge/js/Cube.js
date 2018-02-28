@@ -1,6 +1,8 @@
-'use strict'
 
-class Cube {
+import '/p5.js';
+
+
+export default class Cube {
 
   constructor(pos, side, color) {
     this.pos = pos;

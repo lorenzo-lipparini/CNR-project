@@ -1,4 +1,7 @@
-'use strict'
+
+import '/p5.js';
+import timer from '/lib/timer.js';
+import MengerSponge from './MengerSponge.js';
 
 
 const angularVelocity = 1/15 * (2 * Math.PI / 60);
@@ -8,7 +11,7 @@ let defaultColor;
 let mengerSponge;
 
 
-function setup() {
+window.setup = () => {
   createCanvas(windowWidth, windowHeight, WEBGL);
 
   defaultColor = color(50, 100, 255);
@@ -18,7 +21,7 @@ function setup() {
   frameRate(60);
 
   main();
-}
+};
 
 async function main() {
 
@@ -65,7 +68,7 @@ async function main() {
 
 let angle = 0;
 
-function draw() {
+window.draw = () => {
   
   timer.update();
 
@@ -83,4 +86,4 @@ function draw() {
   
   mengerSponge.show();
 
-}
+};
