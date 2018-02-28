@@ -1,6 +1,8 @@
 
+import videoSpecs from '/lib/videoSpecs.js';
 import '/p5.js';
 import timer from '/lib/timer.js';
+import FrameCapture from '/lib/FrameCapture.js';
 import MengerSponge from './MengerSponge.js';
 
 
@@ -12,15 +14,17 @@ let mengerSponge;
 
 
 window.setup = () => {
-  createCanvas(windowWidth, windowHeight, WEBGL);
+  createCanvas(videoSpecs.resolution.x, videoSpecs.resolution.y, WEBGL);
 
   defaultColor = color(50, 100, 255);
 
-  mengerSponge = new MengerSponge(new p5.Vector(0, 0, 0), 300, defaultColor, 0);
+  mengerSponge = new MengerSponge(new p5.Vector(0, 0, 0), height / 2, defaultColor, 0);
 
   frameRate(60);
 
   main();
+
+  FrameCapture.acquire();
 };
 
 async function main() {
@@ -51,18 +55,20 @@ async function main() {
   }
 
   
-  await timer(60);
+  await timer(1);
 
-  while(mengerSponge.iterations < 3) {
+  while (mengerSponge.iterations < 3) {
     mengerSponge.incrementIterations();
 
-    await mengerSponge.animateExcludedCubes(mengerSponge.iterations, 60, flash);
+    await mengerSponge.animateExcludedCubes(mengerSponge.iterations, 3, flash);
   
-    await mengerSponge.animateExcludedCubes(mengerSponge.iterations, 60, scaleDown);
+    await mengerSponge.animateExcludedCubes(mengerSponge.iterations, 2, scaleDown);
 
-    await timer(20);
+    await timer(1/3);
   }
-  
+
+
+  FrameCapture.stop();
 }
 
 
@@ -85,5 +91,8 @@ window.draw = () => {
   noStroke();
   
   mengerSponge.show();
+
+
+  FrameCapture.update();
 
 };
