@@ -1,6 +1,9 @@
-'use strict'
 
-class KochSnowflake {
+import '/p5.js';
+import KochCurve from './KochCurve.js';
+
+
+export default class KochSnowflake {
 
   constructor(center, side, iterations) {
     this.center = center;

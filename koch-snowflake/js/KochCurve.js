@@ -1,6 +1,8 @@
-'use strict'
 
-class KochCurve {
+import '/p5.js';
+
+
+export default class KochCurve {
 
   constructor(start, end, iterations) {
     this.start = start;
