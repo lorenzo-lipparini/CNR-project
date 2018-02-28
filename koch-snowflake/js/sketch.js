@@ -1,18 +1,19 @@
 
+import videoSpecs from '/lib/videoSpecs.js';
 import '/p5.js';
 import FrameCapture from '/lib/FrameCapture.js';
 import KochSnowflake from './KochSnowflake.js';
 
 let kochSnowflake = new KochSnowflake(new p5.Vector(0, 0), 500, 5);
 
-let animationDuration = 180;
+let animationDuration = 3;
 
 window.setup = () => {
-  createCanvas(1920, 1080);
+  createCanvas(videoSpecs.resolution.x, videoSpecs.resolution.y);
 
   frameRate(60);
 
-  FrameCapture.acquire(180);
+  FrameCapture.acquire(3);
 };
 
 
@@ -36,7 +37,7 @@ window.draw = () => {
   
   fill(0);
 
-  let progress = frameCount / animationDuration;
+  let progress = frameCount / (animationDuration * videoSpecs.frameRate);
   progress = 1/2 + 1/2 * sin(PI * progress - PI / 2);
 
   rect(-width/2, -baseY, width, -maxHeight * (1 - progress));
