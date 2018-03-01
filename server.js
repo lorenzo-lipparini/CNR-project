@@ -22,22 +22,25 @@ app.get('/p5.js', (req, res) => {
 app.use('/lib', express.static('./lib'));
 
 
+let videoInfo = null;
 let receivedFrames = 0;
-let expectedFrames = -1;
 
 app.get('/video-service/new', (req, res) => {
-  // Free the './out' directory from the frames of the previous video
+  console.log('New video requested');
+
+  // Free the './out' directory from the data of the previous video
   fs.emptyDirSync('./out');
+  fs.mkdirSync('./out/frames');
 
   // Reset all the variables
+  videoInfo = null;
   receivedFrames = 0;
-  expectedFrames = -1;
 
   res.sendStatus(200);
 });
 
 app.post('/video-service/push-frame', async ({ body: frame }, res) => {
-  await fs.writeFile('./out/frame' + frame.id + '.png', frame.data, 'base64');
+  await fs.writeFile(`./out/frames/${frame.id}.png`, frame.data, 'base64');
 
   receivedFrames++;
   checkAllFramesReceived();
@@ -45,8 +48,8 @@ app.post('/video-service/push-frame', async ({ body: frame }, res) => {
   res.sendStatus(200);
 });
 
-app.post('/video-service/give-info', ({ body: videoInfo }, res) => {
-  expectedFrames = videoInfo.framesNumber;
+app.post('/video-service/give-info', (req, res) => {
+  videoInfo = req.body;
   
   // The info might be sent after all the frames
   checkAllFramesReceived();
@@ -56,10 +59,12 @@ app.post('/video-service/give-info', ({ body: videoInfo }, res) => {
 
 
 function checkAllFramesReceived() {
-  if (receivedFrames === expectedFrames) {
+  if (videoInfo !== null && receivedFrames === videoInfo.framesNumber) {
+    const { frameRate, resolution: { x: resX, y: resY } } = videoInfo; 
+
     console.log('All frames received, running FFmpeg...');
 
-    const RUN_FFMPEG = 'ffmpeg -r 60 -i ./out/frame%d.png -crf 1 -pix_fmt yuv420p ./out/video.mp4';
+    const RUN_FFMPEG = `ffmpeg -r ${frameRate} -s ${resX}x${resY} -i ./out/frames/%d.png -crf 1 -pix_fmt yuv420p ./out/video.mp4`;
     exec(RUN_FFMPEG, () => {
       console.log('Done.\n');
     });
