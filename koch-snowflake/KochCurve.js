@@ -1,10 +1,13 @@
 
+import { Animatable } from '/lib/animation.js';
 import '/p5.js';
 
 
-export default class KochCurve {
+export default class KochCurve extends Animatable {
 
   constructor(start, end, iterations) {
+    super();
+    
     this.start = start;
     this.end = end;
     this.iterations = iterations;
@@ -12,8 +15,27 @@ export default class KochCurve {
     // 0-iterations Koch curves are just straight lines, so they have no child curves
     if (this.iterations !== 0) {
       this.childCurves = [];
-      this._createChildCurves();
+
+      // Used in the animation process to make the bumps come out of the line gradually
+      this.tanAngle = 1.7320508075688767; // tan(60°)
     }
+
+  }
+
+  get tanAngle() {
+    return this._tanAngle;
+  }
+
+  set tanAngle(value) {
+    // Prevent useless computation
+    if (value === this.tanAngle) {
+      return;
+    }
+
+    this._tanAngle = value;
+
+    this.childCurves = [];
+    this._createChildCurves();
 
   }
 
@@ -22,35 +44,40 @@ export default class KochCurve {
     let previousX = this.start.x;
     let previousY = this.start.y;
 
-    // Helper function to create the child curves
-    let addCurve = (endX, endY) => {
+    // Helper function to create the child curves, considers the positions as
+    // relative to this.start and works basically like beginShape()
+    let addCurve = (relativeEndX, relativeEndY) => {
       this.childCurves.push(new KochCurve(
         new p5.Vector(previousX, previousY),
-        new p5.Vector((previousX = endX), (previousY = endY)),
+        new p5.Vector((previousX = this.start.x + relativeEndX), (previousY = this.start.y + relativeEndY)),
         this.iterations - 1
       ));
     };
 
     let deltaX = this.end.x - this.start.x;
     let deltaY = this.end.y - this.start.y;
+    
 
-    addCurve(this.start.x + deltaX / 3, this.start.y + deltaY / 3);
+    addCurve(1/3 * deltaX, 1/3 * deltaY);
+    
+    if (deltaX === 0) { // tanAngle = Infinity => angle = 90°
+      addCurve(0, deltaY/6 * this.tanAngle);
+    } else {
+      const k = (3 - this.tanAngle * deltaY/deltaX) / 6;
+      addCurve(
+        k * deltaX,
+        k * deltaY + this.tanAngle / 6 * (deltaX**2+deltaY**2) / deltaX
+      );
+    }
 
-    const sin60 = 0.8660254037844386;
-    const factor = 1/3 * (1/2 - sin60 * deltaY / deltaX);
+    addCurve(2/3 * deltaX, 2/3 * deltaY);
 
-    addCurve(
-      previousX + deltaX * factor,
-      previousY + deltaY * factor + sin60 / 3 * (deltaX + deltaY * deltaY / deltaX)
-    );
+    addCurve(deltaX, deltaY);
 
-    addCurve(this.start.x + 2/3 * deltaX, this.start.y + 2/3 * deltaY);
-
-    addCurve(this.end.x, this.end.y);
-
-  } 
+  }
 
   show() {
+
     beginShape();
 
     this._addVertices();
@@ -64,6 +91,9 @@ export default class KochCurve {
   }
 
   _addVertices() {
+    // Since KochSnowflake doesn't call show(), put _updateAnimations() here
+    // to ensure it will be called
+    this._updateAnimations();
     
     // 0-iterations Koch curves are just straight lines
     if (this.iterations === 0) {
@@ -85,6 +115,7 @@ export default class KochCurve {
 
     // Simple case: this wasn't even a fractal
     if (this.iterations === 1) {
+      this.tanAngle = 1.7320508075688767; // tan(60°)
 
       this.childCurves = [];
       this._createChildCurves();
@@ -96,6 +127,24 @@ export default class KochCurve {
     for (let curve of this.childCurves) {
       curve.incrementIterations();
     }
+
+  }
+
+  animate(iteration, ...params) {
+    
+    // 1-iteration animations just refer to the current object
+    if (iteration === 1) {
+      return super.animate(...params);
+    }
+
+    let returnPromise;
+    
+    // If it doesn't directly refer to this object, delegate the task to the child curves
+    for (let curve of this.childCurves) {
+      returnPromise = curve.animate(iteration - 1, ...params);
+    }
+    
+    return returnPromise;
 
   }
 

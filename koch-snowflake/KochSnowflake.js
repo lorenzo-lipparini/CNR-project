@@ -51,9 +51,21 @@ export default class KochSnowflake {
   }
 
   incrementIterations() {
+    this.iterations++;
+
     for (let curve of this.childCurves) {
       curve.incrementIterations();
     }
+  }
+
+  animateCurves(...params) {
+    let returnPromise;
+
+    for (let curve of this.childCurves) {
+      returnPromise = curve.animate(...params);
+    }
+
+    return returnPromise;
   }
 
 }
