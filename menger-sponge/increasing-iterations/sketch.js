@@ -31,12 +31,12 @@ async function main() {
 
   mengerSponge.showExcludedCubes = true;
 
-  function scaleDown(target, progress) {
-    if (!target.originalSide) {
-      target.originalSide = target.side;
+  function scaleDown(target, progress, scope) {
+    if (!scope.originalSide) {
+      scope.originalSide = target.side;
     }
 
-    target.side = (1 - progress) * target.originalSide;
+    target.side = (1 - progress) * scope.originalSide;
   }
 
   function flash(target, progress) {

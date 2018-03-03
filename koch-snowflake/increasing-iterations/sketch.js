@@ -18,12 +18,12 @@ window.setup = () => {
 
 async function main() {
 
-  function bumpUp(target, progress) {
-    if (!target.originalTanAngle) {
-      target.originalTanAngle = target.tanAngle;
+  function bumpUp(target, progress, scope) {
+    if (!scope.originalTanAngle) {
+      scope.originalTanAngle = target.tanAngle;
     }
     
-    target.tanAngle = progress * target.originalTanAngle;
+    target.tanAngle = progress * scope.originalTanAngle;
   }
 
 
