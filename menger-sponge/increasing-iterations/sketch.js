@@ -3,7 +3,7 @@ import videoSpecs from '/lib/videoSpecs.js';
 import '/p5.js';
 import timer from '/lib/timer.js';
 import FrameCapture from '/lib/FrameCapture.js';
-import MengerSponge from './MengerSponge.js';
+import MengerSponge from '../MengerSponge.js';
 
 
 const angularVelocity = 1/15 * (2 * Math.PI / 60);

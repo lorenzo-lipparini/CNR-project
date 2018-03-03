@@ -2,7 +2,7 @@
 import videoSpecs from '/lib/videoSpecs.js';
 import '/p5.js';
 import FrameCapture from '/lib/FrameCapture.js';
-import KochSnowflake from './KochSnowflake.js';
+import KochSnowflake from '../KochSnowflake.js';
 
 let kochSnowflake;
 
