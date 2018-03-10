@@ -21,6 +21,9 @@ app.get('/p5.js', (req, res) => {
 });
 app.use('/lib', express.static('./lib'));
 
+app.get('/CNR/*/', (req, res) => {
+  res.sendFile(__dirname + '/index.html');
+});
 
 let videoInfo = null;
 let receivedFrames = 0;
