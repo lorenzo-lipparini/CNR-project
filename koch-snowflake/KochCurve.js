@@ -60,13 +60,13 @@ export default class KochCurve extends Animatable {
 
     addCurve(1/3 * deltaX, 1/3 * deltaY);
     
-    if (deltaX === 0) { // tanAngle = Infinity => angle = 90°
-      addCurve(0, deltaY/6 * this.tanAngle);
+    if (deltaX === 0) { // deltaY/deltaX = Infinity => angle of the base line = 90°
+      addCurve(-deltaY/6 * this.tanAngle, deltaY / 2);
     } else {
       const k = (3 - this.tanAngle * deltaY/deltaX) / 6;
       addCurve(
         k * deltaX,
-        k * deltaY + this.tanAngle / 6 * (deltaX**2+deltaY**2) / deltaX
+        k * deltaY + this.tanAngle / 6 * (deltaX*deltaX + deltaY*deltaY) / deltaX
       );
     }
 
