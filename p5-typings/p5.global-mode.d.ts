@@ -1314,6 +1314,10 @@ declare const PORTRAIT: 'portrait';
  */
 // declare function preload(): void; CHANGED HERE
 
+interface Window {
+  preload(): void
+}
+
 /**
  *   The setup() function is called once when the 
  *   program starts. It's used to define initial 
@@ -1328,6 +1332,10 @@ declare const PORTRAIT: 'portrait';
  *
  */
 // declare function setup(): void; // CHANGED HERE
+
+interface Window {
+  setup(): void
+}
 
 /**
  *   Called directly after setup(), the draw() function 
@@ -1369,6 +1377,10 @@ declare const PORTRAIT: 'portrait';
  *
  */
 // declare function draw(): void; CHANGED HERE
+
+interface Window {
+  draw(): void
+}
 
 /**
  *   Removes the entire p5 sketch. This will remove the 
@@ -1767,6 +1779,10 @@ declare var windowHeight: number;
  *
  */
 // declare function windowResized(): void; CHANGED HERE
+
+interface Window {
+  windowResized(): void
+}
 
 /**
  *   System variable that stores the width of the 
@@ -2641,6 +2657,10 @@ declare function setShakeThreshold(value: number): void;
  */
 // declare function deviceMoved(): void; CHANGED HERE
 
+interface Window {
+  deviceMoved(): void
+}
+
 /**
  *   The deviceTurned() function is called when the 
  *   device rotates by more than 90 degrees 
@@ -2653,6 +2673,10 @@ declare function setShakeThreshold(value: number): void;
  */
 // declare function deviceTurned(): void; CHANGED HERE
 
+interface Window {
+  deviceTurned(): void
+}
+
 /**
  *   The deviceShaken() function is called when the 
  *   device total acceleration changes of accelerationX 
@@ -2662,6 +2686,10 @@ declare function setShakeThreshold(value: number): void;
  *
  */
 // declare function deviceShaken(): void; CHANGED HERE
+
+interface Window {
+  deviceShaken(): void
+}
 
 // src/events/keyboard.js
 
@@ -2729,6 +2757,10 @@ declare var keyCode: number;
  */
 // declare function keyPressed(): void; CHANGED HERE
 
+interface Window {
+  keyPressed(): void
+}
+
 /**
  *   The keyReleased() function is called once every 
  *   time a key is released. See key and keyCode for 
@@ -2739,6 +2771,10 @@ declare var keyCode: number;
  *
  */
 // declare function keyReleased(): void; CHANGED HERE
+
+interface Window {
+  keyReleased(): void
+}
 
 /**
  *   The keyTyped() function is called once every time 
@@ -2759,6 +2795,10 @@ declare var keyCode: number;
  *
  */
 // declare function keyTyped(): void; CHANGED HERE
+
+interface Window {
+  keyTyped(): void
+}
 
 /**
  *   The keyIsDown() function checks if the key is 
@@ -2878,6 +2918,10 @@ declare var mouseIsPressed: boolean;
  */
 // declare function mouseMoved(): void; CHANGED HERE
 
+interface Window {
+  mouseMoved(): void
+}
+
 /**
  *   The mouseDragged() function is called once every 
  *   time the mouse moves and a mouse button is 
@@ -2891,6 +2935,10 @@ declare var mouseIsPressed: boolean;
  *
  */
 // declare function mouseDragged(): void; CHANGED HERE
+
+interface Window {
+  mouseDragged(): void
+}
 
 /**
  *   The mousePressed() function is called once after 
@@ -2908,6 +2956,10 @@ declare var mouseIsPressed: boolean;
  */
 // declare function mousePressed(): void; CHANGED HERE
 
+interface Window {
+  mousePressed(): void
+}
+
 /**
  *   The mouseReleased() function is called every time 
  *   a mouse button is released. If no mouseReleased() 
@@ -2920,6 +2972,10 @@ declare var mouseIsPressed: boolean;
  *
  */
 // declare function mouseReleased(): void; CHANGED HERE
+
+interface Window {
+  mouseReleased(): void
+}
 
 /**
  *   The mouseClicked() function is called once after a 
@@ -2939,6 +2995,10 @@ declare var mouseIsPressed: boolean;
  */
 // declare function mouseClicked(): void; CHANGED HERE
 
+interface Window {
+  mouseClicked(): void
+}
+
 /**
  *   The doubleClicked() function is executed every 
  *   time a event listener has detected a dblclick 
@@ -2952,6 +3012,10 @@ declare var mouseIsPressed: boolean;
  *
  */
 // declare function doubleClicked(): void; CHANGED HERE
+
+interface Window {
+  doubleClicked(): void
+}
 
 /**
  *   The function mouseWheel() is executed every time a 
@@ -2976,6 +3040,10 @@ declare var mouseIsPressed: boolean;
  *
  */
 // declare function mouseWheel(): void; CHANGED HERE
+
+interface Window {
+  mouseWheel(): void
+}
 
 // src/events/touch.js
 
@@ -3005,6 +3073,10 @@ declare var touches: object[];
  */
 // declare function touchStarted(): void; CHANGED HERE
 
+interface Window {
+  touchStarted(): void
+}
+
 /**
  *   The touchMoved() function is called every time a 
  *   touch move is registered. If no touchMoved() 
@@ -3018,6 +3090,10 @@ declare var touches: object[];
  */
 // declare function touchMoved(): void; CHANGED HERE
 
+interface Window {
+  touchMoved(): void
+}
+
 /**
  *   The touchEnded() function is called every time a 
  *   touch ends. If no touchEnded() function is 
@@ -3030,6 +3106,10 @@ declare var touches: object[];
  *
  */
 // declare function touchEnded(): void; CHANGED HERE
+
+interface Window {
+  touchEnded(): void
+}
 
 // src/image/image.js
 
