@@ -1,5 +1,5 @@
 
-import videoSpecs from './videoSpecs';
+import videoSpecs from './videoSpecs.js';
 
 
 export default class FrameCapture {

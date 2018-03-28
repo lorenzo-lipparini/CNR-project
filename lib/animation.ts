@@ -1,6 +1,7 @@
 
 import videoSpecs from './videoSpecs.js';
 
+
 interface Animation<T> {
   frameDuration: number,
   update: AnimationFunction<T>,

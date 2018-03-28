@@ -1,7 +1,5 @@
 
-/// <reference path="../p5-typings/p5" />
-
-import { Animatable } from '../lib/animation';
+import { Animatable } from '../lib/animation.js';
 
 
 export default class Cube extends Animatable {

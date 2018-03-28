@@ -1,13 +1,10 @@
 
-/// <reference path="../../p5-typings/p5" />
+import videoSpecs from '../../lib/videoSpecs.js';
+import timer from '../../lib/timer.js';
+import FrameCapture from '../../lib/FrameCapture.js';
 
-import videoSpecs from '../../lib/videoSpecs';
-
-import timer from '../../lib/timer';
-import FrameCapture from '../../lib/FrameCapture';
-
-import Cube from '../Cube';
-import MengerSponge from '../MengerSponge';
+import Cube from '../Cube.js';
+import MengerSponge from '../MengerSponge.js';
 
 
 const angularVelocity = 1/15 * (2 * Math.PI / 60);

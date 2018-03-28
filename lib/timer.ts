@@ -1,7 +1,6 @@
 
-/// <reference path="../p5-typings/p5" />
+import videoSpecs from './videoSpecs.js';
 
-import videoSpecs from './videoSpecs';
 
 interface Timer {
   lastFrame: number,

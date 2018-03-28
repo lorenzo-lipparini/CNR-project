@@ -1,6 +1,7 @@
 
-import { AnimationFunction } from '../lib/animation';
-import Cube from './Cube'; 
+import { AnimationFunction } from '../lib/animation.js';
+
+import Cube from './Cube.js'; 
 
 
 export default class MengerSponge extends Cube {
