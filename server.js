@@ -15,15 +15,16 @@ app.use(bodyParser.json({ limit: '1gb' })); // Virtually limitless
 
 app.use('/CNR', express.static('./'));
 
-// Make p5 and lib modules easier to import
+// Make p5 easier to import
 app.get('/p5.js', (req, res) => {
   res.sendFile(__dirname + '/node_modules/p5/lib/p5.min.js');
 });
-app.use('/lib', express.static('./lib'));
 
+// Serve the same html for all the sketches
 app.get('/CNR/*/', (req, res) => {
   res.sendFile(__dirname + '/index.html');
 });
+
 
 let videoInfo = null;
 let receivedFrames = 0;
@@ -54,7 +55,7 @@ app.post('/video-service/push-frame', async ({ body: frame }, res) => {
 app.post('/video-service/give-info', (req, res) => {
   videoInfo = req.body;
   
-  // The info might be sent after all the frames
+  // The info might have been sent after all the frames
   checkAllFramesReceived();
 
   res.sendStatus(200);
