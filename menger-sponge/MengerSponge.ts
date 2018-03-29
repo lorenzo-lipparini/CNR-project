@@ -4,6 +4,9 @@ import { AnimationFunction } from '../lib/animation.js';
 import Cube from './Cube.js'; 
 
 
+/**
+ * Represent a Menger Sponge fractal in the scene.
+ */
 export default class MengerSponge extends Cube {
 
   private childSponges: MengerSponge[] = [];
@@ -12,6 +15,12 @@ export default class MengerSponge extends Cube {
   private _showExcludedCubes: boolean = false;
 
 
+  /**
+   * @param pos The 3D point relative to which the sponge will be drawn
+   * @param side The length of the side of the sponge
+   * @param color Color assigned to the child cubes of the sponge
+   * @param iterations Integer number which determines the detail and complexity of the fractal
+   */
   public constructor(public pos: p5.Vector, public side: number, public color: p5.Color, public iterations: number) {
 
     super(pos, side, color);
@@ -29,11 +38,15 @@ export default class MengerSponge extends Cube {
 
     }
 
-    // Make this property true to show the cubes which are not part of the fractal (used in the animation process)
     this.showExcludedCubes = false;
     
   }
 
+  /**
+   * Determines wether the cubes which are not part of the fractal will be drawn or not.
+   * 
+   * @default false
+   */
   public get showExcludedCubes(): boolean {
     return this._showExcludedCubes;
   }
@@ -128,6 +141,15 @@ export default class MengerSponge extends Cube {
 
   }
 
+  /**
+   * Binds an animation to all the cubes which were excluded from the fractal at the given iteration.
+   * 
+   * @param iteration The iteration which identifies the cubes
+   * @param duration Duration of the animation (in seconds)
+   * @param update Animation function, used to update the state of the object before drawing
+   * 
+   * @returns A promise which resolves when the animation is finished
+   */
   public animateExcludedCubes(iteration: number, duration: number, update: AnimationFunction<Cube>): Promise<void> {
     // NOTE: doesn't work if iteration > this.iterations, which makes sense
 
@@ -150,6 +172,14 @@ export default class MengerSponge extends Cube {
     
   }
 
+  /**
+   * Binds an animation to all the excluded cubes.
+   * 
+   * @param duration Duration of the animation (in seconds)
+   * @param update Animation function, used to update the state of the object before drawing
+   * 
+   * @returns A promise which resolves when the animation is finished
+   */
   public animateAllExcludedCubes(duration: number, update: AnimationFunction<Cube>): Promise<void> {
 
     // 0-iterations Menger sponges are just cubes, so they have no child excluded cubes to animate
@@ -171,7 +201,9 @@ export default class MengerSponge extends Cube {
 
   }
 
-  // A fractal might need a higher definition during the animation, use this method
+  /**
+   * Increments the iterations of the fractal, adding further detail to its shape.
+   */
   public incrementIterations(): void {
     this.iterations++;
 
