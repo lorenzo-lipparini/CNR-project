@@ -2,7 +2,7 @@
 import { Animatable } from '../lib/animation.js';
 
 /**
- * Represents a Cube in the scene which may be animated.
+ * Represents an animatable Cube in the scene.
  */
 export default class Cube extends Animatable {
 

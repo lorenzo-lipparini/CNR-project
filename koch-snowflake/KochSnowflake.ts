@@ -1,15 +1,25 @@
 
-import { AnimationFunction } from '../lib/animation.js';
+import { Animatable, AnimationFunction } from '../lib/animation.js';
 
 import KochCurve from './KochCurve.js';
 
 
-export default class KochSnowflake {
+/**
+ * Represents an animatable Koch Snowflake fractal in the scene.
+ */
+export default class KochSnowflake extends Animatable {
 
   private childCurves: KochCurve[] = [];
 
-  
+ 
+  /**
+   * @param center The circumcenter of the base triangle of the fractal
+   * @param side The side of the base triangle of the fractal
+   * @param iterations Integer number which determines the detail and complexity of the fractal
+   */
   public constructor(public readonly center: p5.Vector, public readonly side: number, public iterations: number) {
+    super();
+
     this.createChildCurves();
   }
 
@@ -49,6 +59,9 @@ export default class KochSnowflake {
     endShape(CLOSE);
   }
 
+  /**
+   * Increments the iterations of the fractal, adding further detail to its shape.
+   */
   public incrementIterations(): void {
     this.iterations++;
 
@@ -57,6 +70,15 @@ export default class KochSnowflake {
     }
   }
 
+  /**
+   * Binds an animation to all the curves of a given iteration.
+   * 
+   * @param iteration The iteration which identifies the curves
+   * @param duration Duration of the animation (in seconds)
+   * @param update Animation function, used to update the state of the object before drawing
+   * 
+   * @returns A promise which resolves when the animation is finished
+   */
   public animateCurves(iteration: number, duration: number, update: AnimationFunction<KochCurve>): Promise<void> {
     let returnPromise = Promise.resolve();
 

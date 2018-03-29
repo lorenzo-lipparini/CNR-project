@@ -5,7 +5,7 @@ import Cube from './Cube.js';
 
 
 /**
- * Represent a Menger Sponge fractal in the scene.
+ * Represent an animatable Menger Sponge fractal in the scene.
  */
 export default class MengerSponge extends Cube {
 
