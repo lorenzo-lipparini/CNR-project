@@ -2,22 +2,28 @@
 import videoSpecs from './videoSpecs.js';
 
 
-export default class FrameCapture {
+namespace FrameCapture {
 
-  private static framesNumber: number;
-  private static canvas: HTMLCanvasElement;
-  private static active: boolean;
-  private static acquiredFrames: number;
+  let canvas: HTMLCanvasElement;
 
-  public static acquire(duration?: number) {
+  let framesNumber: number;
+  let active: boolean;
+  let acquiredFrames: number;
 
-    // If framesNumber is undefined, FrameCapture will acquire frames until stop() is called
-    FrameCapture.framesNumber = -1;
+
+  export function acquire(duration?: number): void {
+
+    // Make sure to get the canvas after createCanvas() is called in setup()
+    canvas = document.getElementsByTagName('canvas')[0];
+
+    framesNumber = -1;
+
+    // If duration is undefined, FrameCapture will acquire frames until stop() is called
     if (duration !== undefined) {
-      FrameCapture.framesNumber = Math.floor(duration * videoSpecs.frameRate);
+      framesNumber = Math.floor(duration * videoSpecs.frameRate);
     }
-    FrameCapture.canvas = document.getElementsByTagName('canvas')[0];
-    FrameCapture.active = true;
+
+    active = true;
 
     // NOT EQUAL TO FRAMECOUNT:
     //
@@ -32,7 +38,7 @@ export default class FrameCapture {
     //
     // Making a distinction between these two cases is actually a less elegant solution
     // than just using this extra variable and not relying of frameCount at all.
-    FrameCapture.acquiredFrames = 0;
+    acquiredFrames = 0;
 
 
     fetch('/video-service/new').catch(() => alert('Server offline.'));
@@ -40,9 +46,9 @@ export default class FrameCapture {
   }
 
   // To be called at the end of draw()
-  public static update() {
+  export function update(): void {
     
-    if (!FrameCapture.active) {
+    if (!active) {
       return;
     }
     
@@ -54,24 +60,24 @@ export default class FrameCapture {
       },
       body: JSON.stringify({
         id: frameCount,
-        data: FrameCapture.canvas.toDataURL().split(',')[1]
+        data: canvas.toDataURL().split(',')[1]
       })
     });
 
     
-    FrameCapture.acquiredFrames++;
+    acquiredFrames++;
 
-    if (FrameCapture.framesNumber !== -1 && FrameCapture.acquiredFrames === FrameCapture.framesNumber) {
-      FrameCapture.stop();
+    if (framesNumber !== -1 && acquiredFrames === framesNumber) {
+      stop();
       return;
     }
 
   }
 
-  public static stop() {
+  export function stop(): void {
 
-    FrameCapture.framesNumber = -1;
-    FrameCapture.active = false;
+    framesNumber = -1;
+    active = false;
 
     fetch('/video-service/give-info', {
       method: 'POST',
@@ -80,7 +86,7 @@ export default class FrameCapture {
       },
       body: JSON.stringify({
         ...videoSpecs,
-        framesNumber: FrameCapture.acquiredFrames
+        framesNumber: acquiredFrames
       })
     });
 
@@ -89,3 +95,6 @@ export default class FrameCapture {
   }
 
 }
+
+
+export default FrameCapture;
