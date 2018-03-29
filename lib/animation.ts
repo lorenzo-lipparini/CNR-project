@@ -34,16 +34,14 @@ export class Animatable {
 
   private animations: Animation<this>[] = [];
 
-  
-  public constructor() { }
 
   /**
-   * Use this method to bind a custom animation to the object.
+   * Binds a custom animation to the object.
    * 
    * @param duration Duration of the animation (in seconds)
    * @param update Animation function, used to update the state of the object before drawing
    * 
-   * @returns A promise which resolve when the animation is finished
+   * @returns A promise which resolves when the animation is finished
    */
   public animate(duration: number, update: AnimationFunction<this>): Promise<void> {
     return new Promise(resolve => {
@@ -83,5 +81,10 @@ export class Animatable {
     }
 
   }
+
+  /**
+   * Draws the object on the canvas.
+   */
+  public show(): void { /* To be ovverrided */ }
 
 }

@@ -9,6 +9,7 @@ let videoSpecs = {
     y: 360
   },
   frameRate: 30
+  
   // Production quality
   // resolution: {
   //   x: 1920,
