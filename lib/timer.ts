@@ -7,14 +7,14 @@ interface Timer {
   callback: () => void;
 }
 
-// Private array which stores the active timers
+/**
+ * Array which stores the active timers.
+ */
 let timers: Timer[] = [];
 
 /**
- * Public function that returns a promise which resolves after
- * the given time has passed.
- * 
- * timer.update() has to be called in draw() in order for the class to work.
+ * Public function that returns a promise which resolves after the given time has passed;
+ * timer.update() has to be called in draw() in order for the function to work.
  * 
  * @param duration The duration of the timer (in seconds) 
  */
@@ -32,7 +32,7 @@ function timer(duration: number): Promise<void> {
 namespace timer {
 
   /**
-   * Public function that updates all the timers,
+   * Public function that updates all the timers;
    * to be called at the beginning of draw().
    */
   export function update(): void {
