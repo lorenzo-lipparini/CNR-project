@@ -34,11 +34,11 @@ export default class MengerSponge extends Cube {
     
   }
 
-  public get showExcludedCubes() {
+  public get showExcludedCubes(): boolean {
     return this._showExcludedCubes;
   }
 
-  public set showExcludedCubes(value) {
+  public set showExcludedCubes(value: boolean) {
     // Prevent useless recursion
     if (value === this._showExcludedCubes) {
       return;
@@ -54,7 +54,7 @@ export default class MengerSponge extends Cube {
     }
   }
 
-  private createChildSponges() {
+  private createChildSponges(): void {
 
     let childSide = this.side / 3;
 
@@ -86,7 +86,7 @@ export default class MengerSponge extends Cube {
     
   }
 
-  private createExcludedCubes() {
+  private createExcludedCubes(): void {
 
     let childSide = this.side / 3;
 
@@ -108,7 +108,7 @@ export default class MengerSponge extends Cube {
 
   }
 
-  public show() {
+  public show(): void {
 
     if (this.iterations === 0) {
       // 0-iterations Menger sponges are just cubes
@@ -150,14 +150,14 @@ export default class MengerSponge extends Cube {
     
   }
 
-  public animateAllExcludedCubes(duration: number, update: AnimationFunction<Cube>) {
+  public animateAllExcludedCubes(duration: number, update: AnimationFunction<Cube>): Promise<void> {
 
     // 0-iterations Menger sponges are just cubes, so they have no child excluded cubes to animate
     if (this.iterations === 0) {
-      return;
+      return Promise.resolve();
     }
 
-    let returnPromise; // Just take a random one, since they all finish simultaneously
+    let returnPromise = Promise.resolve(); // Just take a random one, since they all finish simultaneously
     
     for (let cube of this.excludedCubes) {
       returnPromise = cube.animate(duration, update);
@@ -172,7 +172,7 @@ export default class MengerSponge extends Cube {
   }
 
   // A fractal might need a higher definition during the animation, use this method
-  public incrementIterations() {
+  public incrementIterations(): void {
     this.iterations++;
 
     // Simple case: this wasn't even a fractal

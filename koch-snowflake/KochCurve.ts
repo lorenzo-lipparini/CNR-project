@@ -8,6 +8,7 @@ export default class KochCurve extends Animatable {
   
   private _tanAngle: number = -1;
 
+
   public constructor(public start: p5.Vector, public end: p5.Vector, public iterations: number) {
     super();
 
@@ -21,11 +22,11 @@ export default class KochCurve extends Animatable {
 
   }
 
-  public get tanAngle() {
+  public get tanAngle(): number {
     return this._tanAngle;
   }
 
-  public set tanAngle(value) {
+  public set tanAngle(value: number) {
     // Prevent useless computation
     if (value === this.tanAngle) {
       return;
@@ -36,8 +37,7 @@ export default class KochCurve extends Animatable {
     this.updateChildCurves();
   }
 
-
-  private updatePosition(start: p5.Vector, end: p5.Vector) {
+  private updatePosition(start: p5.Vector, end: p5.Vector): void {
     this.start = start;
     this.end = end;
 
@@ -50,7 +50,7 @@ export default class KochCurve extends Animatable {
   // Reusing the old children instead of replacing them is important because
   // there might be animations bound to those objects, which would stop if they
   // were destroyed
-  private updateChildCurves() {
+  private updateChildCurves(): void {
 
     let previousX = this.start.x;
     let previousY = this.start.y;
@@ -94,7 +94,7 @@ export default class KochCurve extends Animatable {
 
   }
 
-  public show() {
+  public show(): void {
 
     beginShape();
 
@@ -108,7 +108,7 @@ export default class KochCurve extends Animatable {
     endShape();
   }
 
-  public addVertices() {
+  public addVertices(): void {
     // Since KochSnowflake doesn't call show(), put _updateAnimations() here
     // to ensure it will be called
     this.updateAnimations();
@@ -128,7 +128,7 @@ export default class KochCurve extends Animatable {
   }
 
   // A fractal might need a higher definition during the animation, use this method
-  public incrementIterations() {
+  public incrementIterations(): void {
     this.iterations++;
 
     // Simple case: this wasn't even a fractal

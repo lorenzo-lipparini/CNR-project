@@ -3,8 +3,8 @@ import videoSpecs from './videoSpecs.js';
 
 
 interface Timer {
-  lastFrame: number,
-  callback: () => void
+  lastFrame: number;
+  callback: () => void;
 }
 
 // Private array which stores the active timers
@@ -12,11 +12,13 @@ let timers: Timer[] = [];
 
 /**
  * Public function that returns a promise which resolves after
- * the given time has passed
+ * the given time has passed.
+ * 
+ * timer.update() has to be called in draw() in order for the class to work.
  * 
  * @param duration The duration of the timer (in seconds) 
  */
-function timer(duration: number) {
+function timer(duration: number): Promise<void> {
   return new Promise(resolve => {
     let frameDuration = Math.floor(duration * videoSpecs.frameRate);
 
@@ -30,9 +32,10 @@ function timer(duration: number) {
 namespace timer {
 
   /**
-   * Public function that updates all the timers, to be called in draw()
+   * Public function that updates all the timers,
+   * to be called at the beginning of draw().
    */
-  export function update() {
+  export function update(): void {
     for (let i = 0; i < timers.length; i++) {
       if (frameCount > timers[i].lastFrame) { // If a timer has stopped
         // Fire the callback and remove it from the list
@@ -46,5 +49,6 @@ namespace timer {
   }
 
 }
+
 
 export default timer;

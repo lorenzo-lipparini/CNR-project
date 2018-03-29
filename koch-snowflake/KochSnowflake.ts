@@ -8,11 +8,12 @@ export default class KochSnowflake {
 
   private childCurves: KochCurve[] = [];
 
+  
   public constructor(public readonly center: p5.Vector, public readonly side: number, public iterations: number) {
     this.createChildCurves();
   }
 
-  private createChildCurves() {
+  private createChildCurves(): void {
     
     const csc60 = 1.1547005383792515;
     
@@ -38,7 +39,7 @@ export default class KochSnowflake {
 
   }
 
-  public show() {
+  public show(): void {
     beginShape();
 
     for (let curve of this.childCurves) {
@@ -48,7 +49,7 @@ export default class KochSnowflake {
     endShape(CLOSE);
   }
 
-  public incrementIterations() {
+  public incrementIterations(): void {
     this.iterations++;
 
     for (let curve of this.childCurves) {
@@ -56,8 +57,8 @@ export default class KochSnowflake {
     }
   }
 
-  public animateCurves(iteration: number, duration: number, update: AnimationFunction<KochCurve>) {
-    let returnPromise;
+  public animateCurves(iteration: number, duration: number, update: AnimationFunction<KochCurve>): Promise<void> {
+    let returnPromise = Promise.resolve();
 
     for (let curve of this.childCurves) {
       returnPromise = curve.animateIteration(iteration, duration, update);

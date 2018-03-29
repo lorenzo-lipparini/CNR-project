@@ -8,7 +8,7 @@ export default class Cube extends Animatable {
     super();
   }
 
-  public show() {
+  public show(): void {
     // Let the animations change the aspect of the cube before it is drawn
     this.updateAnimations();
 

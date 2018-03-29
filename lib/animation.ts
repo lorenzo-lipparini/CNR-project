@@ -18,6 +18,7 @@ export class Animatable {
 
   private animations: Animation<this>[] = [];
 
+  
   public constructor() { }
 
   // Keeps calling the update() function passing it this object,
@@ -39,7 +40,7 @@ export class Animatable {
     });
   }
 
-  protected updateAnimations() {
+  protected updateAnimations(): void {
 
     for (let i = 0; i < this.animations.length; i++) {
       let animation = this.animations[i];
