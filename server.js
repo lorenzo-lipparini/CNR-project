@@ -13,7 +13,7 @@ const app = express();
 app.use(bodyParser.json({ limit: '1gb' })); // Virtually limitless
 
 
-app.use('/CNR', express.static('./'));
+app.use('/CNR', express.static('./build'));
 
 // Make p5 easier to import
 app.get('/p5.js', (req, res) => {
