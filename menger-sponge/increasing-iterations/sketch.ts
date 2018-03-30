@@ -1,16 +1,17 @@
 
-import videoSpecs from '/lib/videoSpecs.js';
-import '/p5.js';
-import timer from '/lib/timer.js';
-import FrameCapture from '/lib/FrameCapture.js';
+import videoSpecs from '../../lib/videoSpecs.js';
+import timer from '../../lib/timer.js';
+import FrameCapture from '../../lib/FrameCapture.js';
+
+import Cube from '../Cube.js';
 import MengerSponge from '../MengerSponge.js';
 
 
 const angularVelocity = 1/15 * (2 * Math.PI / 60);
 
-let defaultColor;
+let defaultColor: p5.Color;
 
-let mengerSponge;
+let mengerSponge: MengerSponge;
 
 
 window.setup = () => {
@@ -31,7 +32,7 @@ async function main() {
 
   mengerSponge.showExcludedCubes = true;
 
-  function scaleDown(target, progress, scope) {
+  function scaleDown(target: Cube, progress: number, scope: { originalSide: number }) {
     if (!scope.originalSide) {
       scope.originalSide = target.side;
     }
@@ -39,7 +40,7 @@ async function main() {
     target.side = (1 - progress) * scope.originalSide;
   }
 
-  function flash(target, progress) {
+  function flash(target: Cube, progress: number) {
     // let flashColor = lerpColor(defaultColor, color('red'), 0.75);
     let flashColor = lerpColor(defaultColor, color('white'), 0.2);
     

@@ -1,12 +1,14 @@
 
-import videoSpecs from '/lib/videoSpecs.js';
-import '/p5.js';
-import FrameCapture from '/lib/FrameCapture.js';
+import videoSpecs from '../../lib/videoSpecs.js';
+import FrameCapture from '../../lib/FrameCapture.js';
+
 import KochSnowflake from '../KochSnowflake.js';
 
-let kochSnowflake;
+
+let kochSnowflake: KochSnowflake;
 
 let animationDuration = 3;
+
 
 window.setup = () => {
   createCanvas(videoSpecs.resolution.x, videoSpecs.resolution.y);
@@ -41,12 +43,12 @@ window.draw = () => {
   progress = 1/2 + 1/2 * sin(PI * progress - PI / 2);
 
 
-  fill(0);
+  fill(0, 0, 0);
 
   rect(-width/2, -baseY, width, -maxHeight * (1 - progress));
 
   noFill();
-  stroke(255);
+  stroke(255, 255, 255);
 
   kochSnowflake.show();
 

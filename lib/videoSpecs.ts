@@ -1,12 +1,15 @@
 
-// Change these options to affect the specifications of all the output videos
-export default {
+/**
+ * Stores the specifications of the video to export.
+ */
+let videoSpecs = {
   // Low quality for fast demos
   resolution: {
     x: 640,
     y: 360
   },
   frameRate: 30
+  
   // Production quality
   // resolution: {
   //   x: 1920,
@@ -14,3 +17,6 @@ export default {
   // },
   // frameRate: 60
 };
+
+
+export default videoSpecs;

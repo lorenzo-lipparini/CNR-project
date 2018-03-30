@@ -1,33 +1,40 @@
 
-import { Animatable } from '/lib/animation.js';
-import '/p5.js';
+import { Animatable, AnimationFunction } from '../lib/animation.js';
 
 
+/**
+ * Represents an animatable Koch Curve fractal in the scene.
+ */
 export default class KochCurve extends Animatable {
 
-  constructor(start, end, iterations) {
+  private childCurves: KochCurve[] = [];
+  
+  private _tanAngle: number = -1;
+
+
+  /**
+   * @param start One end point of the base
+   * @param end The other end point of the base
+   * @param iterations Integer number which determines the detail and complexity of the fractal
+   */
+  public constructor(public start: p5.Vector, public end: p5.Vector, public iterations: number) {
     super();
-    
-    this.start = start;
-    this.end = end;
-    this.iterations = iterations;
 
     // 0-iterations Koch curves are just straight lines, so they have no child curves
     if (this.iterations !== 0) {
-      this.childCurves = [];
-      // No need to call _updateCurves here, since it will be called by the tanAngle setter
-
-      // Used in the animation process to make the bumps come out of the line gradually
+      // No need to call updateCurves here, since it will be called by the tanAngle setter 
       this.tanAngle = 1.7320508075688767; // tan(60°)
     }
-
   }
 
-  get tanAngle() {
+  /**
+   * Used in the animation process to change the height of the spikes.
+   */
+  public get tanAngle(): number {
     return this._tanAngle;
   }
 
-  set tanAngle(value) {
+  public set tanAngle(value: number) {
     // Prevent useless computation
     if (value === this.tanAngle) {
       return;
@@ -35,24 +42,23 @@ export default class KochCurve extends Animatable {
 
     this._tanAngle = value;
 
-    this._updateChildCurves();
+    this.updateChildCurves();
   }
 
-
-  _updatePosition(start, end) {
+  private updatePosition(start: p5.Vector, end: p5.Vector): void {
     this.start = start;
     this.end = end;
 
     if (this.iterations !== 0) {
-      this._updateChildCurves();
+      this.updateChildCurves();
     }
   }
-
-  // Creates the child curves or updates their position if they exist already
-  // Reusing the old children instead of replacing them is important because
-  // there might be animations bound to those objects, which would stop if they
-  // were destroyed
-  _updateChildCurves() {
+  
+  private updateChildCurves(): void {
+    // Creates the child curves or updates their position if they exist already
+    // Reusing the old children instead of replacing them is important because
+    // there might be animations bound to those objects, which would stop if they
+    // were destroyed
 
     let previousX = this.start.x;
     let previousY = this.start.y;
@@ -61,14 +67,14 @@ export default class KochCurve extends Animatable {
 
     // Helper function to create/update the child curves, considers the positions as
     // relative to this.start and works basically like beginShape()
-    let addCurve = (relativeEndX, relativeEndY) => {
+    let addCurve = (relativeEndX: number, relativeEndY: number) => {
       let start = new p5.Vector(previousX, previousY);
       let end = new p5.Vector((previousX = this.start.x + relativeEndX), (previousY = this.start.y + relativeEndY));
       
       if (this.childCurves[addedCurves] === undefined) {
         this.childCurves.push(new KochCurve(start, end, this.iterations - 1));
       } else {
-        this.childCurves[addedCurves]._updatePosition(start, end);
+        this.childCurves[addedCurves].updatePosition(start, end);
       }
 
       addedCurves++; 
@@ -96,24 +102,28 @@ export default class KochCurve extends Animatable {
 
   }
 
-  show() {
+  public show(): void {
 
     beginShape();
 
-    this._addVertices();
+    this.addVertices();
 
     // (*) Consecutive lines share a vertex, so in order to prevent it from being drawn two times
     //     only the start vertex of each line is drawn. That means that the last vertex of the curve
-    //     won't be drawn by _addVertices(), so it has to be done manually.
+    //     won't be drawn by addVertices(), so it has to be done manually.
     vertex(this.end.x, this.end.y);
 
     endShape();
   }
 
-  _addVertices() {
-    // Since KochSnowflake doesn't call show(), put _updateAnimations() here
+  /**
+   * Calls p5's vertex() function for each of the vertices of the fractal excluding its end;
+   * to be only invoked inside a beginShape()-endShape() block.
+   */
+  public addVertices(): void {
+    // Since KochSnowflake doesn't call show(), put updateAnimations() here
     // to ensure it will be called
-    this._updateAnimations();
+    this.updateAnimations();
     
     // 0-iterations Koch curves are just straight lines
     if (this.iterations === 0) {
@@ -124,19 +134,21 @@ export default class KochCurve extends Animatable {
     }
     
     for (let curve of this.childCurves) {
-      curve._addVertices();
+      curve.addVertices();
     }
 
   }
 
-  // A fractal might need a higher definition during the animation, use this method
-  incrementIterations() {
+  /**
+   * Increments the iterations of the fractal, adding further detail to its shape.
+   */
+  public incrementIterations(): void {
     this.iterations++;
 
     // Simple case: this wasn't even a fractal
     if (this.iterations === 1) {
       this.childCurves = [];
-      // No need to call _updateCurves here, since it will be called by the tanAngle setter
+      // No need to call updateCurves here, since it will be called by the tanAngle setter
 
       this.tanAngle = 1.7320508075688767; // tan(60°)
 
@@ -150,18 +162,27 @@ export default class KochCurve extends Animatable {
 
   }
 
-  animate(iteration, ...params) {
+  /**
+   * Binds an animation to all the child curves of a given iteration.
+   * 
+   * @param iteration The iteration which identifies the curves
+   * @param duration Duration of the animation (in seconds)
+   * @param update Animation function, used to update the state of the object before drawing
+   * 
+   * @returns A promise which resolves when the animation is finished
+   */
+  public animateIteration(iteration:  number, duration: number, update: AnimationFunction<KochCurve>): Promise<void> {
     
     // 1-iteration animations just refer to the current object
     if (iteration === 1) {
-      return super.animate(...params);
+      return super.animate(duration, update);
     }
 
-    let returnPromise;
+    let returnPromise: Promise<void> = Promise.resolve();
     
     // If it doesn't directly refer to this object, delegate the task to the child curves
     for (let curve of this.childCurves) {
-      returnPromise = curve.animate(iteration - 1, ...params);
+      returnPromise = curve.animateIteration(iteration - 1, duration, update);
     }
     
     return returnPromise;

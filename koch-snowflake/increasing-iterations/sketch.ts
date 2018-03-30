@@ -1,10 +1,13 @@
 
-import videoSpecs from '/lib/videoSpecs.js';
-import timer from '/lib/timer.js';
-import '/p5.js';
+import videoSpecs from '../../lib/videoSpecs.js';
+import timer from '../../lib/timer.js';
+
+import KochCurve from '../KochCurve.js';
 import KochSnowflake from '../KochSnowflake.js';
 
-let kochSnowflake;
+
+let kochSnowflake: KochSnowflake;
+
 
 window.setup = () => {
   createCanvas(videoSpecs.resolution.x, videoSpecs.resolution.y);
@@ -18,7 +21,7 @@ window.setup = () => {
 
 async function main() {
 
-  function bumpUp(target, progress, scope) {
+  function bumpUp(target: KochCurve, progress: number, scope: { originalTanAngle: number }) {
     if (!scope.originalTanAngle) {
       scope.originalTanAngle = target.tanAngle;
     }
@@ -49,7 +52,7 @@ window.draw = () => {
   translate(width / 2, height / 2);
   scale(1, -1);
 
-  stroke(255);
+  stroke(255, 255, 255);
   noFill();
 
   kochSnowflake.show();  
