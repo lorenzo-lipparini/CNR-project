@@ -3,17 +3,17 @@ import videoSpecs from './videoSpecs.js';
 
 
 interface Animation<T> {
-  frameDuration: number,
-  update: AnimationFunction<T>,
-  beginFrame: number,
-  callback: () => void,
+  beginFrame: number;
+  frameDuration: number;
+  update: AnimationFunction<T>;
+  callback: () => void;
   /**
    * Passed to the update function as the third argument, if you need to
    * store custom values relative to the target
    * (such as initial values of the animated properties)
    * attach them to this object instead of the actual target
    */
-  scope: any
+  scope: any;
 }
 
 /**
@@ -26,6 +26,40 @@ interface Animation<T> {
 export interface AnimationFunction<T> {
   (target: T, progress: number, scope: any): void
 }
+
+export class LinearAnimationTemplate<T> {
+
+  public readonly frameDuration: number;
+
+  public readonly update: AnimationFunction<T>;
+
+
+  public constructor(property: keyof T, duration: number, initialValue: number, finalValue: number);
+  public constructor(property: keyof T, duration: number, finalValue: number);
+  public constructor(public readonly property: keyof T, duration: number, firstValue: number, secondValue?: number) {
+    this.frameDuration = Math.floor(duration * videoSpecs.frameRate);
+
+    if (secondValue === undefined) {
+      let finalValue = firstValue;
+
+      this.update = (target, progress, { initialValue }) => {
+        target[property] = initialValue + progress * (finalValue - initialValue);
+      };
+    } else {
+      let initialValue = firstValue;
+      let finalValue = secondValue;
+
+      this.update = (target, progress) => {
+        target[property] = <any> (initialValue + progress * (finalValue - initialValue));
+      };
+    }
+  
+    
+  }
+
+}
+
+
 
 /**
  * A generic object of the scene which may be animated.
@@ -43,15 +77,36 @@ export class Animatable {
    * 
    * @returns A promise which resolves when the animation is finished
    */
-  public animate(duration: number, update: AnimationFunction<this>): Promise<void> {
+  public animate(duration: number, update: AnimationFunction<this>): Promise<void>;
+  public animate(template: LinearAnimationTemplate<this>): Promise<void>;
+  public animate(durationOrTemplate: number | LinearAnimationTemplate<this>, update?: AnimationFunction<this>): Promise<void> {
     return new Promise(resolve => {
-      this.animations.push({
-        frameDuration: Math.floor(duration * videoSpecs.frameRate),
-        update,
-        beginFrame: frameCount,
-        callback: resolve,
-        scope: {}
-      });
+      let animation;
+      
+      if (typeof durationOrTemplate === 'number') {
+        let duration = durationOrTemplate;
+        
+        animation = {
+          frameDuration: Math.floor(duration * videoSpecs.frameRate),
+          update: update!, // In the second overload, the second parameter must be given
+          beginFrame: frameCount,
+          callback: resolve,
+          scope: {}
+        };
+      } else {
+        let template = durationOrTemplate;
+
+        animation = {
+          beginFrame: frameCount,
+          
+          frameDuration: template.frameDuration,
+          update: template.update,
+          scope: { initialValue: this[template.property] },
+          callback: resolve
+        };
+      }
+
+      this.animations.push(animation);
     });
   }
 
@@ -60,10 +115,10 @@ export class Animatable {
    * to be called before drawing the object.
    */
   protected updateAnimations(): void {
-
+    
     for (let i = 0; i < this.animations.length; i++) {
       let animation = this.animations[i];
-
+      
       let progress = (frameCount - animation.beginFrame) / animation.frameDuration;
       
       if (progress >= 1) { // If the animation has finished
