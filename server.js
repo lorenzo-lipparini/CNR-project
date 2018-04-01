@@ -9,6 +9,14 @@ const express = require('express');
 const bodyParser = require('body-parser');
 
 
+// Removes the data relative to the previous video from the ./out directory
+function clearOutDir() {
+  fs.emptyDirSync('./out');
+  fs.mkdirSync('./out/frames');
+}
+clearOutDir();
+
+
 const app = express();
 app.use(bodyParser.json({ limit: '1gb' })); // Virtually limitless
 
@@ -17,12 +25,12 @@ app.use('/CNR', express.static('./build'));
 
 // Make p5 easier to import
 app.get('/p5.js', (req, res) => {
-  res.sendFile(__dirname + '/node_modules/p5/lib/p5.min.js');
+  res.sendFile(`${__dirname}/node_modules/p5/lib/p5.min.js`);
 });
 
 // Serve the same html for all the sketches
 app.get('/CNR/*/', (req, res) => {
-  res.sendFile(__dirname + '/index.html');
+  res.sendFile(`${__dirname}/index.html`);
 });
 
 
@@ -32,9 +40,7 @@ let receivedFrames = 0;
 app.get('/video-service/new', (req, res) => {
   console.log('New video requested');
 
-  // Free the './out' directory from the data of the previous video
-  fs.emptyDirSync('./out');
-  fs.mkdirSync('./out/frames');
+  clearOutDir();
 
   // Reset all the variables
   videoInfo = null;
@@ -64,11 +70,11 @@ app.post('/video-service/give-info', (req, res) => {
 
 function checkAllFramesReceived() {
   if (videoInfo !== null && receivedFrames === videoInfo.framesNumber) {
-    const { frameRate, resolution: { x: resX, y: resY } } = videoInfo; 
+    const { frameRate, resolution: res } = videoInfo; 
 
     console.log('All frames received, running FFmpeg...');
 
-    const RUN_FFMPEG = `ffmpeg -r ${frameRate} -s ${resX}x${resY} -i ./out/frames/%d.png -crf 1 -pix_fmt yuv420p ./out/video.mp4`;
+    const RUN_FFMPEG = `ffmpeg -r ${frameRate} -s ${res.x}x${res.y} -i ./out/frames/%d.png -crf 1 -pix_fmt yuv420p ./out/video.mp4`;
     exec(RUN_FFMPEG, () => {
       console.log('Done.\n');
     });
