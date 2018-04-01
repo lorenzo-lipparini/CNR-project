@@ -2,11 +2,11 @@
 import videoSpecs from './videoSpecs.js';
 
 
-interface Animation<T> {
-  beginFrame: number;
-  frameDuration: number;
-  update: AnimationFunction<T>;
-  callback: () => void;
+interface OnGoingAnimation<T> {
+  readonly beginFrame: number;
+  readonly frameDuration: number;
+  readonly update: AnimationFunction<T>;
+  readonly callback: () => void;
   /**
    * Passed to the update function as the third argument, if you need to
    * store custom values relative to the target
@@ -27,38 +27,44 @@ export interface AnimationFunction<T> {
   (target: T, progress: number, scope: any): void
 }
 
-export class LinearAnimationTemplate<T> {
 
-  public readonly frameDuration: number;
+export interface Animation<T> {
+  readonly property: keyof T;
 
-  public readonly update: AnimationFunction<T>;
-
-
-  public constructor(property: keyof T, duration: number, initialValue: number, finalValue: number);
-  public constructor(property: keyof T, duration: number, finalValue: number);
-  public constructor(public readonly property: keyof T, duration: number, firstValue: number, secondValue?: number) {
-    this.frameDuration = Math.floor(duration * videoSpecs.frameRate);
-
-    if (secondValue === undefined) {
-      let finalValue = firstValue;
-
-      this.update = (target, progress, { initialValue }) => {
-        target[property] = initialValue + progress * (finalValue - initialValue);
-      };
-    } else {
-      let initialValue = firstValue;
-      let finalValue = secondValue;
-
-      this.update = (target, progress) => {
-        target[property] = <any> (initialValue + progress * (finalValue - initialValue));
-      };
-    }
-  
-    
-  }
-
+  readonly frameDuration: number;
+  readonly update: AnimationFunction<T>;
 }
 
+
+export function linearAnimation<T>(property: keyof T, duration: number, initialValue: number, finalValue: number): Animation<T>;
+export function linearAnimation<T>(property: keyof T, duration: number, finalValue: number): Animation<T>;
+export function linearAnimation<T>(property: keyof T, duration: number, firstValue: number, secondValue?: number): Animation<T> {
+
+  let update: AnimationFunction<T>;
+
+  if (secondValue === undefined) {
+    let finalValue = firstValue;
+
+    update = (target, progress, { initialValue }) => {
+      target[property] = initialValue + progress * (finalValue - initialValue);
+    };
+  } else {
+    let initialValue = firstValue;
+    let finalValue = secondValue;
+
+    update = (target, progress) => {
+      target[property] = <any> (initialValue + progress * (finalValue - initialValue));
+    };
+  }
+
+
+  return {
+    property,
+    frameDuration: Math.floor(duration * videoSpecs.frameRate),
+    update
+  };
+    
+}
 
 
 /**
@@ -66,7 +72,7 @@ export class LinearAnimationTemplate<T> {
  */
 export class Animatable {
 
-  private animations: Animation<this>[] = [];
+  private animations: OnGoingAnimation<this>[] = [];
 
 
   /**
@@ -78,8 +84,8 @@ export class Animatable {
    * @returns A promise which resolves when the animation is finished
    */
   public animate(duration: number, update: AnimationFunction<this>): Promise<void>;
-  public animate(template: LinearAnimationTemplate<this>): Promise<void>;
-  public animate(durationOrTemplate: number | LinearAnimationTemplate<this>, update?: AnimationFunction<this>): Promise<void> {
+  public animate(template: Animation<this>): Promise<void>;
+  public animate(durationOrTemplate: number | Animation<this>, update?: AnimationFunction<this>): Promise<void> {
     return new Promise(resolve => {
       let animation;
       
