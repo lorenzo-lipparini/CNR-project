@@ -1,5 +1,6 @@
-import { OnGoingAnimation, AnimationFunction, Animation } from "./animation";
-import videoSpecs from "./videoSpecs";
+
+import videoSpecs from "./videoSpecs.js";
+import { PlayingAnimation, Animation } from "./animation.js";
 
 
 /**
@@ -7,7 +8,7 @@ import videoSpecs from "./videoSpecs";
  */
 export default class Animatable {
 
-  private animations: OnGoingAnimation<this>[] = [];
+  private animations: PlayingAnimation<this, any>[] = [];
 
 
   /**
@@ -18,36 +19,9 @@ export default class Animatable {
    * 
    * @returns A promise which resolves when the animation is finished
    */
-  public animate(duration: number, update: AnimationFunction<this>): Promise<void>;
-  public animate(template: Animation<this>): Promise<void>;
-  public animate(durationOrTemplate: number | Animation<this>, update?: AnimationFunction<this>): Promise<void> {
+  public animate<U extends keyof this>(animation: Animation<this, U>): Promise<void> {
     return new Promise(resolve => {
-      let animation;
-      
-      if (typeof durationOrTemplate === 'number') {
-        let duration = durationOrTemplate;
-        
-        animation = {
-          frameDuration: Math.floor(duration * videoSpecs.frameRate),
-          update: update!, // In the second overload, the second parameter must be given
-          beginFrame: frameCount,
-          callback: resolve,
-          scope: {}
-        };
-      } else {
-        let template = durationOrTemplate;
-
-        animation = {
-          beginFrame: frameCount,
-          
-          frameDuration: template.frameDuration,
-          update: template.update,
-          scope: { initialValue: this[template.property] },
-          callback: resolve
-        };
-      }
-
-      this.animations.push(animation);
+      this.animations.push(new PlayingAnimation(this, animation, resolve));
     });
   }
 
@@ -58,22 +32,12 @@ export default class Animatable {
   protected updateAnimations(): void {
     
     for (let i = 0; i < this.animations.length; i++) {
-      let animation = this.animations[i];
       
-      let progress = (frameCount - animation.beginFrame) / animation.frameDuration;
-      
-      if (progress >= 1) { // If the animation has finished
-        animation.update(this, 1, animation.scope); // Run the last frame
-
-        animation.callback();
-
-        this.animations.splice(i, 1); // Remove the animation
-        i--; // Necessary, since an element has been removed from the array
-
-        continue;
+      if (this.animations[i].update()) { // If the animation has finished
+        this.animations.splice(i, 1);
+        i--;
       }
-
-      animation.update(this, progress, animation.scope);
+      
     }
 
   }
