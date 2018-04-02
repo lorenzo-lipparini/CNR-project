@@ -1,5 +1,5 @@
 
-import { Animatable, AnimationFunction } from '../lib/animation.js';
+import { Animation, Animatable } from '../lib/animation.js';
 
 
 /**
@@ -171,18 +171,18 @@ export default class KochCurve extends Animatable {
    * 
    * @returns A promise which resolves when the animation is finished
    */
-  public animateIteration(iteration:  number, duration: number, update: AnimationFunction<KochCurve>): Promise<void> {
+  public animateIteration<U extends keyof KochCurve>(iteration: number, animation: Animation<KochCurve, U>): Promise<void> {
     
     // 1-iteration animations just refer to the current object
     if (iteration === 1) {
-      return super.animate(duration, update);
+      return (<KochCurve> this).animate(animation);
     }
 
     let returnPromise: Promise<void> = Promise.resolve();
     
     // If it doesn't directly refer to this object, delegate the task to the child curves
     for (let curve of this.childCurves) {
-      returnPromise = curve.animateIteration(iteration - 1, duration, update);
+      returnPromise = curve.animateIteration(iteration - 1, animation);
     }
     
     return returnPromise;

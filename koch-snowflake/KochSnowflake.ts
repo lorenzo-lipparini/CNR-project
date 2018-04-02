@@ -1,5 +1,5 @@
 
-import { Animatable, AnimationFunction } from '../lib/animation.js';
+import { Animation, Animatable } from '../lib/animation.js';
 
 import KochCurve from './KochCurve.js';
 
@@ -79,11 +79,11 @@ export default class KochSnowflake extends Animatable {
    * 
    * @returns A promise which resolves when the animation is finished
    */
-  public animateCurves(iteration: number, duration: number, update: AnimationFunction<KochCurve>): Promise<void> {
+  public animateCurves<U extends keyof KochCurve>(iteration: number, animation: Animation<KochCurve, U>): Promise<void> {
     let returnPromise = Promise.resolve();
-
+    
     for (let curve of this.childCurves) {
-      returnPromise = curve.animateIteration(iteration, duration, update);
+      returnPromise = curve.animateIteration(iteration, animation);
     }
 
     return returnPromise;

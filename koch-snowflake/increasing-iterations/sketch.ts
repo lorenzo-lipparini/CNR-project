@@ -1,6 +1,7 @@
 
 import videoSpecs from '../../lib/videoSpecs.js';
 import timer from '../../lib/timer.js';
+import { linearAnimation } from '../../lib/animation.js';
 
 import KochCurve from '../KochCurve.js';
 import KochSnowflake from '../KochSnowflake.js';
@@ -20,25 +21,17 @@ window.setup = () => {
 };
 
 async function main() {
-
-  function bumpUp(target: KochCurve, progress: number, scope: { originalTanAngle: number }) {
-    if (!scope.originalTanAngle) {
-      scope.originalTanAngle = target.tanAngle;
-    }
-    
-    target.tanAngle = progress * scope.originalTanAngle;
-  }
-
+  
+  let bumpUp = linearAnimation<KochCurve, 'tanAngle'>('tanAngle', 1, 0, Math.tan(Math.PI / 3));
 
   
   await timer(1);
 
   while (kochSnowflake.iterations < 5) {
-    
     kochSnowflake.incrementIterations();
     
-    await kochSnowflake.animateCurves(kochSnowflake.iterations, 1, bumpUp);
-
+    await kochSnowflake.animateCurves(kochSnowflake.iterations, bumpUp);
+    
     await timer(1);
   }
 
