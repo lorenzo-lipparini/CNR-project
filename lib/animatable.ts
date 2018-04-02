@@ -1,6 +1,6 @@
 
-import videoSpecs from "./videoSpecs.js";
-import { PlayingAnimation, Animation } from "./animation.js";
+import videoSpecs from './videoSpecs.js';
+import { PlayingAnimation, Animation } from './animation.js';
 
 
 /**

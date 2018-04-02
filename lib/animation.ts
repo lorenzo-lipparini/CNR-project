@@ -149,3 +149,4 @@ export function linearAnimation<T extends HasNumber<U>, U extends keyof T>(prope
 }
 
 export { default as Animatable } from './animatable.js';
+export { animate, updateAnimations } from './animate.js';
