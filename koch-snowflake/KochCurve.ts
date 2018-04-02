@@ -163,13 +163,10 @@ export default class KochCurve extends Animatable {
   }
 
   /**
-   * Binds an animation to all the child curves of a given iteration.
+   * Plays an animation on all the child curves of a given iteration.
    * 
    * @param iteration The iteration which identifies the curves
-   * @param duration Duration of the animation (in seconds)
-   * @param update Animation function, used to update the state of the object before drawing
-   * 
-   * @returns A promise which resolves when the animation is finished
+   * @param animation The animation to play on the curves
    */
   public animateIteration<U extends keyof KochCurve>(iteration: number, animation: Animation<KochCurve, U>): Promise<void> {
     

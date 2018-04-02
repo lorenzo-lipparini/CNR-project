@@ -71,13 +71,10 @@ export default class KochSnowflake extends Animatable {
   }
 
   /**
-   * Binds an animation to all the curves of a given iteration.
+   * Plays an animation on all the curves of a given iteration.
    * 
    * @param iteration The iteration which identifies the curves
-   * @param duration Duration of the animation (in seconds)
-   * @param update Animation function, used to update the state of the object before drawing
-   * 
-   * @returns A promise which resolves when the animation is finished
+   * @param animation The animation to play on the curves
    */
   public animateCurves<U extends keyof KochCurve>(iteration: number, animation: Animation<KochCurve, U>): Promise<void> {
     let returnPromise = Promise.resolve();

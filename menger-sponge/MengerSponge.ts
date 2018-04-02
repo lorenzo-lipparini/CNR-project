@@ -142,13 +142,10 @@ export default class MengerSponge extends Cube {
   }
 
   /**
-   * Binds an animation to all the cubes which were excluded from the fractal at the given iteration.
+   * Plays an animation on all the excluded cubes of a given iteration.
    * 
    * @param iteration The iteration which identifies the cubes
-   * @param duration Duration of the animation (in seconds)
-   * @param update Animation function, used to update the state of the object before drawing
-   * 
-   * @returns A promise which resolves when the animation is finished
+   * @param animation The animation to play on the cubes
    */
   public animateExcludedCubes<U extends keyof Cube>(iteration: number, animation: Animation<Cube, U>): Promise<void> {
     // NOTE: doesn't work if iteration > this.iterations, which makes sense
@@ -172,12 +169,9 @@ export default class MengerSponge extends Cube {
   }
 
   /**
-   * Binds an animation to all the excluded cubes.
+   * Plays an animation on all the excluded cubes of the sponge.
    * 
-   * @param duration Duration of the animation (in seconds)
-   * @param update Animation function, used to update the state of the object before drawing
-   * 
-   * @returns A promise which resolves when the animation is finished
+   * @param animation The animation to play on the cubes
    */
   public animateAllExcludedCubes<U extends keyof Cube>(animation: Animation<Cube, U>) {
     // 0-iterations Menger sponges are just cubes, so they have no child excluded cubes to animate
