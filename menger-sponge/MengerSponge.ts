@@ -1,5 +1,5 @@
 
-import { AnimationFunction } from '../lib/animation.js';
+import { Animation } from '../lib/animation.js';
 
 import Cube from './Cube.js'; 
 
@@ -150,14 +150,14 @@ export default class MengerSponge extends Cube {
    * 
    * @returns A promise which resolves when the animation is finished
    */
-  public animateExcludedCubes(iteration: number, duration: number, update: AnimationFunction<Cube>): Promise<void> {
+  public animateExcludedCubes<U extends keyof Cube>(iteration: number, animation: Animation<Cube, U>): Promise<void> {
     // NOTE: doesn't work if iteration > this.iterations, which makes sense
 
     let returnPromise: Promise<void> = Promise.resolve(); // Just take a random one, since they all finish simultaneously
 
     if (iteration === 1) { // In this case, it just refers to the child cubes of this MengerSponge
       for (let cube of this.excludedCubes) {
-        returnPromise = cube.animate(duration, update);
+        returnPromise = cube.animate(animation);
       }
 
       return returnPromise;
@@ -165,11 +165,10 @@ export default class MengerSponge extends Cube {
     
     // If it doesn't refer to the cubes of this sponge, just delegate the task to the direct child sponges
     for (let mengerSponge of this.childSponges) {
-      returnPromise = mengerSponge.animateExcludedCubes(iteration - 1, duration, update);
+      returnPromise = mengerSponge.animateExcludedCubes(iteration - 1, animation);
     }
 
     return returnPromise;
-    
   }
 
   /**
@@ -180,25 +179,24 @@ export default class MengerSponge extends Cube {
    * 
    * @returns A promise which resolves when the animation is finished
    */
-  public animateAllExcludedCubes(duration: number, update: AnimationFunction<Cube>): Promise<void> {
-
+  public animateAllExcludedCubes<U extends keyof Cube>(animation: Animation<Cube, U>) {
     // 0-iterations Menger sponges are just cubes, so they have no child excluded cubes to animate
     if (this.iterations === 0) {
       return Promise.resolve();
     }
 
+
     let returnPromise = Promise.resolve(); // Just take a random one, since they all finish simultaneously
     
     for (let cube of this.excludedCubes) {
-      returnPromise = cube.animate(duration, update);
+      returnPromise = cube.animate(animation);
     }
 
     for (let mengerSponge of this.childSponges) {
-      mengerSponge.animateAllExcludedCubes(duration, update);
+      mengerSponge.animateAllExcludedCubes(animation);
     }
 
     return returnPromise;
-
   }
 
   /**
