@@ -3,12 +3,12 @@ import videoSpecs from '../../lib/videoSpecs.js';
 import FrameCapture from '../../lib/FrameCapture.js';
 
 import KochSnowflake from '../KochSnowflake.js';
+import { linearAnimation, animate, updateAnimations } from '../../lib/animation.js';
 
 
 let kochSnowflake: KochSnowflake;
 
-let animationDuration = 3;
-
+let areaRectangle = { baseY: 0, maxHeight: 0, height: 0 };
 
 window.setup = () => {
   createCanvas(videoSpecs.resolution.x, videoSpecs.resolution.y);
@@ -18,9 +18,24 @@ window.setup = () => {
   frameRate(60);
 
   FrameCapture.acquire(3);
+
+  main();
 };
 
+function main(): void {
+  const sin60 = 0.8660254037844386;
+  const cot60 = 0.5773502691896257;
+
+  areaRectangle.baseY = kochSnowflake.side * (1/3 * sin60 + 1/2 * cot60);
+  areaRectangle.maxHeight = 2 * (areaRectangle.baseY - kochSnowflake.center.x);
+
+  animate(areaRectangle, linearAnimation<typeof areaRectangle, 'height'>('height', 3, areaRectangle.maxHeight, 0));
+}
+
 window.draw = () => {
+  updateAnimations();
+
+
   background(0);
   
   translate(width / 2, height / 2);
@@ -32,25 +47,14 @@ window.draw = () => {
 
   kochSnowflake.show();
 
-
-  const sin60 = 0.8660254037844386;
-  const cot60 = 0.5773502691896257;
-  const baseY = -kochSnowflake.side * (1/3 * sin60 + 1/2 * cot60);
-
-  const maxHeight = 2 * (kochSnowflake.center.x - baseY);
-
-  let progress = frameCount / (animationDuration * videoSpecs.frameRate);
-  progress = 1/2 + 1/2 * sin(PI * progress - PI / 2);
-
-
   fill(0, 0, 0);
-
-  rect(-width/2, -baseY, width, -maxHeight * (1 - progress));
+  rect(-width/2, areaRectangle.baseY, width, -areaRectangle.height);
 
   noFill();
   stroke(255, 255, 255);
 
   kochSnowflake.show();
+
 
   FrameCapture.update();  
 };
