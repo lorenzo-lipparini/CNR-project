@@ -11,7 +11,7 @@ export default class Animatable {
   /**
    * The animations currently playing on this object.
    */
-  private animations: PlayingAnimation<this, any>[] = [];
+  private animations: PlayingAnimation<this>[] = [];
 
 
   /**
@@ -19,7 +19,7 @@ export default class Animatable {
    * 
    * @param animation The animation to play
    */
-  public animate<U extends keyof this>(animation: Animation<this, U>): Promise<void> {
+  public animate(animation: Animation<this>): Promise<void> {
     return new Promise(resolve => {
       this.animations.push(new PlayingAnimation(this, animation, resolve));
     });
