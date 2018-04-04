@@ -5,7 +5,7 @@ import videoSpecs from './videoSpecs.js';
 /**
  * Represents an animation which is currently playing on an object.
  */
-export class PlayingAnimation<T> {
+export class PlayingAnimation<T, U extends keyof T> {
   
   /**
    * The frame when the animation started, set when the instance is created.
@@ -17,12 +17,12 @@ export class PlayingAnimation<T> {
    */
   public readonly frameDuration: number;
 
-  public readonly updateTarget: UpdateFunction<T>;
+  public readonly updateTarget: UpdateFunction<T, U>;
   
   /**
-   * Stores the initial values of the animated properties.
+   * Stores the initial values of the animated properties (only those in the pickedValues list of the animation).
    */
-  public readonly initialValues: T;
+  public readonly initialValues: Pick<T, U>;
 
 
   /**
@@ -30,11 +30,11 @@ export class PlayingAnimation<T> {
    * @param animation The animation to play on the object
    * @param callback Function called when the animation finishes
    */
-  public constructor(public readonly target: T, animation: Animation<T>, public readonly callback: () => void) {
+  public constructor(public readonly target: T, animation: Animation<T, U>, public readonly callback: () => void) {
     this.beginFrame = frameCount;
     
     // Instead of copying the entire object, only take the values in the pickedValues list of the animation
-    this.initialValues = <T> {};
+    this.initialValues = {} as Pick<T, U>;
     for (let property of animation.pickedProperties) {
       this.initialValues[property] = target[property];
     }
@@ -75,33 +75,26 @@ export class PlayingAnimation<T> {
  * @param progress Progress value of the animation (in the range [0, 1])
  * @param initialValue Stores the initial conditions of the animation
  */
-interface UpdateFunction<T> {
-  (target: T, progress: number, initialValue: T): void;
-}
+type UpdateFunction<T, U extends keyof T> = (target: T, progress: number, initialValue: Pick<T, U>) => void;
 
 /**
  * Represents an animation that acts on an object of the given type.
  */
-export class Animation<T> {
-  
-  /**
-   * List of the keys whose initial values will be passed the the updateTarget function.
-   */
-  public pickedProperties: (keyof T)[] = [];
-
+export class Animation<T, U extends keyof T> {
 
   /**
    * @param duration The duration of the animation (in seconds)
-   * @param updateTarget The function which updates the target at each frame.
+   * @param updateTarget The function which updates the target at each frame
+   * @param pickedProperties List of the properties whose initial value is passed to updateTarget
    */
-  public constructor(public readonly duration: number, public readonly updateTarget: UpdateFunction<T>) { }
+  public constructor(public readonly duration: number, public readonly updateTarget: UpdateFunction<T, U>, public readonly pickedProperties: U[] = []) { }
 
 }
 
 /**
  * Represents an animation that acts on a single property of an object.
  */
-export class PropertyAnimation<T, U extends keyof T> extends Animation<T> {
+export class PropertyAnimation<T, U extends keyof T> extends Animation<T, U> {
 
   /**
    * @param property The property of the target to animate
@@ -109,12 +102,11 @@ export class PropertyAnimation<T, U extends keyof T> extends Animation<T> {
    * @param valueFunction The value of the animated property, expressed as a function of time and initial value of the property
    */
   public constructor(property: U, duration: number, valueFunction: (progress: number, initialValue: T[U]) => T[U]) {
+  
     super(duration, (target, progress, initialValues) => {
       target[property] = valueFunction(progress, initialValues[property]);
-    });
-
-    // valueFunction depends on the initial value of the property, so add it to the picked values
-    this.pickedProperties.push(property);
+    }, [property]); // valueFunction depends on the initial value of the animated property, so add it to the list of picked values
+  
   }
 
 }

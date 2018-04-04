@@ -2,7 +2,10 @@
 import { Animation, PlayingAnimation } from './animation.js';
 
 
-let globalAnimations: PlayingAnimation<any>[] = [];
+/**
+ * Stores animations of any property of any object.
+ */
+let globalAnimations: PlayingAnimation<any, any>[] = [];
 
 /**
  * Plays a given animation on a given object.
@@ -10,7 +13,7 @@ let globalAnimations: PlayingAnimation<any>[] = [];
  * @param target The object to animate
  * @param animation The animation to play on the object
  */
-export function animate<T>(target: T, animation: Animation<T>): Promise<void> {
+export function animate<T, U extends keyof T>(target: T, animation: Animation<T, U>): Promise<void> {
   return new Promise(resolve => {
     globalAnimations.push(new PlayingAnimation(target, animation, resolve));
   });
