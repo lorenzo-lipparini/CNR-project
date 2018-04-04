@@ -3,7 +3,7 @@ import videoSpecs from '../../lib/videoSpecs.js';
 import FrameCapture from '../../lib/FrameCapture.js';
 
 import KochSnowflake from '../KochSnowflake.js';
-import { linearAnimation, animate, updateAnimations } from '../../lib/animation.js';
+import { LinearAnimation, animate, updateAnimations } from '../../lib/animation.js';
 
 
 let kochSnowflake: KochSnowflake;
@@ -29,7 +29,7 @@ function main(): void {
   areaRectangle.baseY = kochSnowflake.side * (1/3 * sin60 + 1/2 * cot60);
   areaRectangle.maxHeight = 2 * (areaRectangle.baseY - kochSnowflake.center.x);
 
-  animate(areaRectangle, linearAnimation<typeof areaRectangle, 'height'>('height', 3, areaRectangle.maxHeight, 0));
+  animate(areaRectangle, new LinearAnimation<typeof areaRectangle, 'height'>('height', 3, areaRectangle.maxHeight, 0));
 }
 
 window.draw = () => {

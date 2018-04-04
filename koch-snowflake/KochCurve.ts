@@ -168,7 +168,7 @@ export default class KochCurve extends Animatable {
    * @param iteration The iteration which identifies the curves
    * @param animation The animation to play on the curves
    */
-  public animateIteration<U extends keyof KochCurve>(iteration: number, animation: Animation<KochCurve, U>): Promise<void> {
+  public animateIteration(iteration: number, animation: Animation<KochCurve, keyof KochCurve>): Promise<void> {
     
     // 1-iteration animations just refer to the current object
     if (iteration === 1) {

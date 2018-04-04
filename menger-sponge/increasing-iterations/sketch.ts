@@ -1,14 +1,14 @@
 
 import videoSpecs from '../../lib/videoSpecs.js';
 import timer from '../../lib/timer.js';
-import { linearAnimation, animation } from '../../lib/animation.js';
+import { PropertyAnimation, LinearAnimation, Animation } from '../../lib/animation.js';
 import FrameCapture from '../../lib/FrameCapture.js';
 
 import Cube from '../Cube.js';
 import MengerSponge from '../MengerSponge.js';
 
 
-const angularVelocity = 1/15 * (2 * Math.PI / 60);
+const angularVelocity = 1/30 * (2 * Math.PI / 60);
 
 let mengerSponge: MengerSponge;
 
@@ -29,14 +29,17 @@ async function main() {
 
   mengerSponge.showExcludedCubes = true;
 
-  let scaleDown = linearAnimation<Cube, 'side'>('side', 1, 0);
-  let flashColor = lerpColor(mengerSponge.color, color('white'), 0.2);
-  let flash = animation<Cube, 'color'>('color', 3, (progress, initialColor) =>
+  const scaleDown = new LinearAnimation<Cube, 'side'>('side', 1.5, 0);
+
+  const flashColor = lerpColor(mengerSponge.color, color('white'), 0.2);
+  const flash = new PropertyAnimation<Cube, 'color'>('color', 3, (progress, initialColor) =>
     progress <= 0.25 ? flashColor   :
     progress <= 0.50 ? initialColor :
     progress <= 0.75 ? flashColor   :
                        initialColor
   );
+
+  const cubeAnimation = flash.concat(scaleDown);
 
 
   await timer(1);
@@ -44,9 +47,7 @@ async function main() {
   while (mengerSponge.iterations < 3) {
     mengerSponge.incrementIterations();
 
-    await mengerSponge.animateExcludedCubes(mengerSponge.iterations, flash);
-  
-    await mengerSponge.animateExcludedCubes(mengerSponge.iterations, scaleDown);
+    await mengerSponge.animateExcludedCubes(mengerSponge.iterations, cubeAnimation);
 
     await timer(1/3);
   }

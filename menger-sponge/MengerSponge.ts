@@ -147,7 +147,7 @@ export default class MengerSponge extends Cube {
    * @param iteration The iteration which identifies the cubes
    * @param animation The animation to play on the cubes
    */
-  public animateExcludedCubes<U extends keyof Cube>(iteration: number, animation: Animation<Cube, U>): Promise<void> {
+  public animateExcludedCubes(iteration: number, animation: Animation<Cube, keyof Cube>): Promise<void> {
     // NOTE: doesn't work if iteration > this.iterations, which makes sense
 
     let returnPromise: Promise<void> = Promise.resolve(); // Just take a random one, since they all finish simultaneously
@@ -173,7 +173,7 @@ export default class MengerSponge extends Cube {
    * 
    * @param animation The animation to play on the cubes
    */
-  public animateAllExcludedCubes<U extends keyof Cube>(animation: Animation<Cube, U>) {
+  public animateAllExcludedCubes(animation: Animation<Cube, keyof Cube>) {
     // 0-iterations Menger sponges are just cubes, so they have no child excluded cubes to animate
     if (this.iterations === 0) {
       return Promise.resolve();

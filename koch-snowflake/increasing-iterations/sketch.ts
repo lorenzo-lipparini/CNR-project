@@ -1,7 +1,7 @@
 
 import videoSpecs from '../../lib/videoSpecs.js';
 import timer from '../../lib/timer.js';
-import { linearAnimation } from '../../lib/animation.js';
+import { LinearAnimation } from '../../lib/animation.js';
 
 import KochCurve from '../KochCurve.js';
 import KochSnowflake from '../KochSnowflake.js';
@@ -22,7 +22,7 @@ window.setup = () => {
 
 async function main() {
   
-  let bumpUp = linearAnimation<KochCurve, 'tanAngle'>('tanAngle', 1, 0, Math.tan(Math.PI / 3));
+  let bumpUp = new LinearAnimation<KochCurve, 'tanAngle'>('tanAngle', 1, 0, Math.tan(Math.PI / 3));
 
   
   await timer(1);
