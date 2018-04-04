@@ -10,19 +10,28 @@ export class PlayingAnimation<T, U extends keyof T> {
   /**
    * The frame when the animation started, set when the instance is created.
    */
-  public readonly beginFrame: number;
+  private readonly beginFrame: number;
 
   /**
    * The duration of the animation, expressed in frames.
    */
-  public readonly frameDuration: number;
+  private readonly frameDuration: number;
 
-  public readonly updateTarget: UpdateFunction<T, U>;
-  
+  private readonly updateTarget: UpdateFunction<T, U>;
+
+  /**
+   * Sorted array of the key progress values of the animation.
+   */
+  private readonly keyProgressValues: number[];
+  /**
+   * Index of the key progress value which will be reached next.
+   */
+  private nextValueIndex: number = 0;
+
   /**
    * Stores the initial values of the animated properties (only those in the pickedValues list of the animation).
    */
-  public readonly initialValues: Pick<T, U>;
+  private readonly initialValues: Pick<T, U>;
 
 
   /**
@@ -35,7 +44,7 @@ export class PlayingAnimation<T, U extends keyof T> {
     
     // Instead of copying the entire object, only take the values in the pickedValues list of the animation
     this.initialValues = {} as Pick<T, U>;
-    for (let property of animation.pickedProperties) {
+    for (const property of animation.pickedProperties) {
       this.initialValues[property] = target[property];
     }
     
@@ -43,6 +52,8 @@ export class PlayingAnimation<T, U extends keyof T> {
     this.frameDuration = Math.floor(animation.duration * videoSpecs.frameRate);
     
     this.updateTarget = animation.updateTarget;
+    
+    this.keyProgressValues = animation.keyProgressValues.sort();
   }
 
   /**
@@ -53,13 +64,19 @@ export class PlayingAnimation<T, U extends keyof T> {
   public update(): boolean {
     let progress = (frameCount - this.beginFrame) / this.frameDuration;
     
-    if (progress >= 1) { // If the animation has finished
-      // The last frame of an animation must always run
-      this.updateTarget(this.target, 1, this.initialValues);
+    if (progress >= this.keyProgressValues[this.nextValueIndex]) { // If the animation has reached a key frame
+      // Run that exact frame
+      this.updateTarget(this.target, this.keyProgressValues[this.nextValueIndex], this.initialValues);
 
+      if (progress >= 1) { // If the animation has finished
+        this.callback();
+        return true;
+      }
 
-      this.callback();
-      return true;
+      // Wait for the next value to be reached
+      this.nextValueIndex++;
+
+      return false;
     }
 
     this.updateTarget(this.target, progress, this.initialValues);
@@ -71,11 +88,11 @@ export class PlayingAnimation<T, U extends keyof T> {
 /**
  * Function used by animations to update a property of an object.
  * 
- * @param target The object to perform the update on
+ * @param target The object to update
  * @param progress Progress value of the animation (in the range [0, 1])
- * @param initialValue Stores the initial conditions of the animation
+ * @param initialValues Initial conditions of the animation
  */
-type UpdateFunction<T, U extends keyof T> = (target: T, progress: number, initialValue: Pick<T, U>) => void;
+type UpdateFunction<T, U extends keyof T> = (target: T, progress: number, initialValues: Pick<T, U>) => void;
 
 /**
  * Represents an animation that acts on an object of the given type.
@@ -83,11 +100,100 @@ type UpdateFunction<T, U extends keyof T> = (target: T, progress: number, initia
 export class Animation<T, U extends keyof T> {
 
   /**
+   * List of all the progress value corresponding to frames when updateTarget MUST be called;
+   * for elementary animations, it only includes the last frame, while
+   * in composed animations all the keyProgress values of the sub-animations are included
+   * (possibly transformed to fit the new progress interval).
+   */
+  public keyProgressValues: number[] = [1];
+
+
+  /**
    * @param duration The duration of the animation (in seconds)
    * @param updateTarget The function which updates the target at each frame
    * @param pickedProperties List of the properties whose initial value is passed to updateTarget
    */
   public constructor(public readonly duration: number, public readonly updateTarget: UpdateFunction<T, U>, public readonly pickedProperties: U[] = []) { }
+
+  /**
+   * Combines the animation to another animation, returning a new one which is equivalent to
+   * the original two played consecutively;
+   * the initial values passed to the second animation won't take into account the changes made by the first one. 
+   * 
+   * @param animation The animation to concatenate to the current one
+   * 
+   * @returns The resulting animation
+   */
+  public concat<V extends keyof T>(animation: Animation<T, V>): Animation<T, U | V> {
+    
+    // The progress value which corresponds to the instant when the first animation stops and the second one begins
+    // Used to make sure that the progress value passed as parameter ranges from 0 to 1 for both animations
+    const animationChange = this.duration / (this.duration + animation.duration);
+
+    const result = new Animation<T, U | V>(this.duration + animation.duration, (target, progress, initialValues) => {
+      if (progress <= animationChange) {
+        this.updateTarget(target, progress / animationChange, initialValues);
+      } else {
+        animation.updateTarget(target, (progress - animationChange) / (1 - animationChange), initialValues);
+      }
+    }, [...this.pickedProperties, ...animation.pickedProperties]); // Composed animations need all the initial values required by the original ones
+
+
+    // Calculate the new key progress values based those of the original animations
+    // progress => <new start> + <new length> * progress
+    result.keyProgressValues = [
+      // <new start> = 0, <new length> = animationChange
+      ...this.keyProgressValues.map(progress => animationChange * progress),
+      // <new start> = animationChange, <new length> = 1 - animationChange
+      ...animation.keyProgressValues.map(progress => animationChange + (1 - animationChange) * progress)
+    ];
+
+    
+    return result;
+  }
+
+  /**
+   * Combines the animation to another animation, returning a new one which is equivalent to
+   * the original two played simultaneously;
+   * the initial values passed to the longest animation won't take into account the changes made by the shortest one. 
+   * 
+   * @param animation The animation to be played parallel to the current one
+   * 
+   * @returns The resulting animation
+   */
+  public parallel<V extends keyof T>(animation: Animation<T, V>): Animation<T, U | V> {
+    
+    const newDuration = Math.max(this.duration, animation.duration);
+
+    const shortest: Animation<T, U | V> = (this.duration < animation.duration) ? this : animation;
+    const longest: Animation<T, U | V> = (this.duration >= animation.duration) ? this : animation;
+
+    // The progress value corresponding to the frame when the shortest animation stops
+    const shortestEnd = shortest.duration / newDuration;
+
+    const result = new Animation<T, U | V>(newDuration, (target, progress, initialValues) => {
+      // The shortest animation plays in the interval [0, shortestEnd]
+      if (progress <= shortestEnd) {
+        shortest.updateTarget(target, progress / shortestEnd, initialValues);
+      }
+
+      // The longest one plays from the start to the end
+      longest.updateTarget(target, progress, initialValues);
+    }, [...this.pickedProperties, ...animation.pickedProperties]); // Composed animations need all the initial values required by the original ones
+  
+
+    // Calculate the new key progress values based those of the original animations
+    // progress => <new start> + <new length> * progress
+    result.keyProgressValues = [
+      // <new start> = 0, <new length> = shortestEnd
+      ...this.keyProgressValues.map(progress => shortestEnd * progress),
+      // <new start> = 0, <new length> = 1 => progress values kept intact
+      ...animation.keyProgressValues
+    ];
+
+    
+    return result;
+  }
 
 }
 
