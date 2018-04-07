@@ -21,7 +21,7 @@ export default class MengerSponge extends Cube {
    * @param color Color assigned to the child cubes of the sponge
    * @param iterations Integer number which determines the detail and complexity of the fractal
    */
-  public constructor(public pos: p5.Vector, public side: number, public color: p5.Color, public iterations: number) {
+  public constructor(public pos: number[], public side: number, public color: number[], public iterations: number) {
 
     super(pos, side, color);
 
@@ -58,7 +58,7 @@ export default class MengerSponge extends Cube {
     
     if (this.iterations !== 0) {
       // Recursively assign the poperty to every child sponge
-      for (let mengerSponge of this.childSponges) {
+      for (const mengerSponge of this.childSponges) {
         mengerSponge.showExcludedCubes = this._showExcludedCubes;
       }
     }
@@ -75,13 +75,13 @@ export default class MengerSponge extends Cube {
 
     // Helper functions for creating new sponges and cubes
     const addChildSponge = (relativePosX: number, relativePosY: number, relativePosZ: number) => {
-      let newSponge = new MengerSponge(new p5.Vector(this.pos.x + relativePosX, this.pos.y + relativePosY, this.pos.z + relativePosZ), childSide, this.color, this.iterations - 1);
+      const newSponge = new MengerSponge([this.pos[0] + relativePosX, this.pos[1] + relativePosY, this.pos[2] + relativePosZ], childSide, this.color, this.iterations - 1);
       newSponge.showExcludedCubes = this.showExcludedCubes;
       
       this.childSponges.push(newSponge);
     };
     const addExcludedCube = (relativePosX: number, relativePosY: number, relativePosZ: number) => {
-      this.excludedCubes.push(new Cube(new p5.Vector(this.pos.x + relativePosX, this.pos.y + relativePosY, this.pos.z + relativePosZ), childSide, this.color));
+      this.excludedCubes.push(new Cube([this.pos[0] + relativePosX, this.pos[1] + relativePosY, this.pos[2] + relativePosZ], childSide, this.color));
     };
 
     for (let x = -childSide; x <= childSide; x += childSide) {
@@ -109,12 +109,12 @@ export default class MengerSponge extends Cube {
       return;
     }
 
-    for (let mengerSponge of this.childSponges) {
+    for (const mengerSponge of this.childSponges) {
       mengerSponge.show();
     }
 
     if (this.showExcludedCubes) {
-      for (let cube of this.excludedCubes) {
+      for (const cube of this.excludedCubes) {
         cube.show();
       }
     }
@@ -133,7 +133,7 @@ export default class MengerSponge extends Cube {
     let returnPromise: Promise<void> = Promise.resolve(); // Just take a random one, since they all finish simultaneously
 
     if (iteration === 1) { // In this case, it just refers to the child cubes of this MengerSponge
-      for (let cube of this.excludedCubes) {
+      for (const cube of this.excludedCubes) {
         returnPromise = cube.animate(animation);
       }
 
@@ -141,7 +141,7 @@ export default class MengerSponge extends Cube {
     }
     
     // If it doesn't refer to the cubes of this sponge, just delegate the task to the direct child sponges
-    for (let mengerSponge of this.childSponges) {
+    for (const mengerSponge of this.childSponges) {
       returnPromise = mengerSponge.animateExcludedCubes(iteration - 1, animation);
     }
 
@@ -160,13 +160,13 @@ export default class MengerSponge extends Cube {
     }
 
 
-    let returnPromise = Promise.resolve(); // Just take a random one, since they all finish simultaneously
+    let returnPromise: Promise<void> = Promise.resolve(); // Just take a random one, since they all finish simultaneously
     
-    for (let cube of this.excludedCubes) {
+    for (const cube of this.excludedCubes) {
       returnPromise = cube.animate(animation);
     }
 
-    for (let mengerSponge of this.childSponges) {
+    for (const mengerSponge of this.childSponges) {
       mengerSponge.animateAllExcludedCubes(animation);
     }
 
@@ -187,7 +187,7 @@ export default class MengerSponge extends Cube {
     }
 
     // If this had child elements already, delegate the task to the child sponges
-    for (let sponge of this.childSponges) {
+    for (const sponge of this.childSponges) {
       sponge.incrementIterations();
     }
 

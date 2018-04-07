@@ -17,7 +17,7 @@ export default class KochSnowflake extends Animatable {
    * @param side The side of the base triangle of the fractal
    * @param iterations Integer number which determines the detail and complexity of the fractal
    */
-  public constructor(public readonly center: p5.Vector, public readonly side: number, public iterations: number) {
+  public constructor(public readonly center: number[], public readonly side: number, public iterations: number) {
     super();
 
     this.createChildCurves();
@@ -31,10 +31,10 @@ export default class KochSnowflake extends Animatable {
     let previousY = this.side / 2 * csc60;
 
 
-    let addCurve = (relativeEndX: number, relativeEndY: number) => {
+    const addCurve = (relativeEndX: number, relativeEndY: number) => {
       this.childCurves.push(new KochCurve(
-        new p5.Vector(this.center.x + previousX, this.center.y + previousY),
-        new p5.Vector(this.center.x + (previousX = relativeEndX), this.center.y + (previousY = relativeEndY)),
+        [this.center[0] + previousX, this.center[1] + previousY],
+        [this.center[0] + (previousX = relativeEndX), this.center[1] + (previousY = relativeEndY)],
         this.iterations
       ));
     };
@@ -52,7 +52,7 @@ export default class KochSnowflake extends Animatable {
   public show(): void {
     beginShape();
 
-    for (let curve of this.childCurves) {
+    for (const curve of this.childCurves) {
       curve.addVertices();
     }
 
@@ -65,7 +65,7 @@ export default class KochSnowflake extends Animatable {
   public incrementIterations(): void {
     this.iterations++;
 
-    for (let curve of this.childCurves) {
+    for (const curve of this.childCurves) {
       curve.incrementIterations();
     }
   }
@@ -79,7 +79,7 @@ export default class KochSnowflake extends Animatable {
   public animateCurves(iteration: number, animation: Animation<KochCurve, keyof KochCurve>): Promise<void> {
     let returnPromise = Promise.resolve();
     
-    for (let curve of this.childCurves) {
+    for (const curve of this.childCurves) {
       returnPromise = curve.animateIteration(iteration, animation);
     }
 

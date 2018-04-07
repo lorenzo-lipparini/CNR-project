@@ -13,7 +13,7 @@ let areaRectangle = { baseY: 0, maxHeight: 0, height: 0 };
 window.setup = () => {
   createCanvas(videoSpecs.resolution.x, videoSpecs.resolution.y);
 
-  kochSnowflake = new KochSnowflake(new p5.Vector(0, 0), width / 3, 5);
+  kochSnowflake = new KochSnowflake([0, 0], width / 3, 5);
 
   frameRate(60);
 
@@ -27,7 +27,7 @@ function main(): void {
   const cot60 = 0.5773502691896257;
 
   areaRectangle.baseY = kochSnowflake.side * (1/3 * sin60 + 1/2 * cot60);
-  areaRectangle.maxHeight = 2 * (areaRectangle.baseY - kochSnowflake.center.x);
+  areaRectangle.maxHeight = 2 * (areaRectangle.baseY - kochSnowflake.center[0]);
 
   animate(areaRectangle, new LinearAnimation<typeof areaRectangle, 'height'>('height', 3, areaRectangle.maxHeight, 0));
 }

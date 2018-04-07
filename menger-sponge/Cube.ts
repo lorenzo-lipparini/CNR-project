@@ -11,7 +11,7 @@ export default class Cube extends Animatable {
    * @param side The length of the side of the cube
    * @param color The color passed to ambientMaterial() when drawing the cube
    */
-  public constructor(public pos: p5.Vector, public side: number, public color: p5.Color) {
+  public constructor(public pos: number[], public side: number, public color: number[]) {
     super();
   }
 
@@ -19,12 +19,12 @@ export default class Cube extends Animatable {
     // Let the animations change the state of the cube before it is drawn
     this.updateAnimations();
 
-    translate(this.pos.x, this.pos.y, this.pos.z);
+    translate(this.pos[0], this.pos[1], this.pos[2]);
 
     ambientMaterial(this.color);
     box(this.side);
     
-    translate(-this.pos.x, -this.pos.y, -this.pos.z);
+    translate(-this.pos[0], -this.pos[1], -this.pos[2]);
   }
 
 }

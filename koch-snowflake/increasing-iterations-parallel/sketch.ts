@@ -12,7 +12,7 @@ let kochSnowflake: KochSnowflake;
 window.setup = () => {
   createCanvas(videoSpecs.resolution.x, videoSpecs.resolution.y);
 
-  kochSnowflake = new KochSnowflake(new p5.Vector(0, 0), width / 3, 0);
+  kochSnowflake = new KochSnowflake([0, 0], width / 3, 0);
 
   frameRate(60);
 

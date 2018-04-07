@@ -16,7 +16,7 @@ let mengerSponge: MengerSponge;
 window.setup = () => {
   createCanvas(videoSpecs.resolution.x, videoSpecs.resolution.y, WEBGL);
 
-  mengerSponge = new MengerSponge(new p5.Vector(0, 0, 0), height / 2, color(50, 100, 255), 0);
+  mengerSponge = new MengerSponge([0, 0, 0], height / 2, [50, 100, 255], 0);
 
   frameRate(60);
 
@@ -31,11 +31,12 @@ async function main() {
 
   const scaleDown = new LinearAnimation<Cube, 'side'>('side', 1.5, 0);
 
-  const flashColor = lerpColor(mengerSponge.color, color('white'), 0.2);
+  const flashColor = lerpColor(color(mengerSponge.color), color('white'), 0.2);
+  const flashColorV = [red(flashColor), green(flashColor), blue(flashColor)];
   const flash = new PropertyAnimation<Cube, 'color'>('color', 3, (progress, initialColor) =>
-    progress <= 0.25 ? flashColor   :
+    progress <= 0.25 ? flashColorV  :
     progress <= 0.50 ? initialColor :
-    progress <= 0.75 ? flashColor   :
+    progress <= 0.75 ? flashColorV  :
                        initialColor
   );
 

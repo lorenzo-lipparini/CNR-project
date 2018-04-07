@@ -17,7 +17,7 @@ export default class KochCurve extends Animatable {
    * @param end The other end point of the base
    * @param iterations Integer number which determines the detail and complexity of the fractal
    */
-  public constructor(public start: p5.Vector, public end: p5.Vector, public iterations: number) {
+  public constructor(public start: number[], public end: number[], public iterations: number) {
     super();
 
     // 0-iterations Koch curves are just straight lines, so they have no child curves
@@ -45,7 +45,7 @@ export default class KochCurve extends Animatable {
     this.updateChildCurves();
   }
 
-  private updatePosition(start: p5.Vector, end: p5.Vector): void {
+  private updatePosition(start: number[], end: number[]): void {
     this.start = start;
     this.end = end;
 
@@ -60,16 +60,16 @@ export default class KochCurve extends Animatable {
     // there might be animations bound to those objects, which would stop if they
     // were destroyed
 
-    let previousX = this.start.x;
-    let previousY = this.start.y;
+    let previousX = this.start[0];
+    let previousY = this.start[1];
 
     let addedCurves = 0;
 
     // Helper function to create/update the child curves, considers the positions as
     // relative to this.start and works basically like beginShape()
-    let addCurve = (relativeEndX: number, relativeEndY: number) => {
-      let start = new p5.Vector(previousX, previousY);
-      let end = new p5.Vector((previousX = this.start.x + relativeEndX), (previousY = this.start.y + relativeEndY));
+    const addCurve = (relativeEndX: number, relativeEndY: number) => {
+      const start = [previousX, previousY];
+      const end = [previousX = this.start[0] + relativeEndX, previousY = this.start[1] + relativeEndY];
       
       if (this.childCurves[addedCurves] === undefined) {
         this.childCurves.push(new KochCurve(start, end, this.iterations - 1));
@@ -80,8 +80,8 @@ export default class KochCurve extends Animatable {
       addedCurves++; 
     };
 
-    let deltaX = this.end.x - this.start.x;
-    let deltaY = this.end.y - this.start.y;
+    const deltaX = this.end[0] - this.start[0];
+    const deltaY = this.end[1] - this.start[1];
     
 
     addCurve(1/3 * deltaX, 1/3 * deltaY);
@@ -111,7 +111,7 @@ export default class KochCurve extends Animatable {
     // (*) Consecutive lines share a vertex, so in order to prevent it from being drawn two times
     //     only the start vertex of each line is drawn. That means that the last vertex of the curve
     //     won't be drawn by addVertices(), so it has to be done manually.
-    vertex(this.end.x, this.end.y);
+    vertex(this.end[0], this.end[1]);
 
     endShape();
   }
@@ -128,12 +128,12 @@ export default class KochCurve extends Animatable {
     // 0-iterations Koch curves are just straight lines
     if (this.iterations === 0) {
       // See (*)
-      vertex(this.start.x, this.start.y);
+      vertex(this.start[0], this.start[1]);
       
       return;
     }
     
-    for (let curve of this.childCurves) {
+    for (const curve of this.childCurves) {
       curve.addVertices();
     }
 
@@ -156,7 +156,7 @@ export default class KochCurve extends Animatable {
     }
 
     // If this had child elements already, delegate the task to the child curves
-    for (let curve of this.childCurves) {
+    for (const curve of this.childCurves) {
       curve.incrementIterations();
     }
 
@@ -178,7 +178,7 @@ export default class KochCurve extends Animatable {
     let returnPromise: Promise<void> = Promise.resolve();
     
     // If it doesn't directly refer to this object, delegate the task to the child curves
-    for (let curve of this.childCurves) {
+    for (const curve of this.childCurves) {
       returnPromise = curve.animateIteration(iteration - 1, animation);
     }
     
