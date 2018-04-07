@@ -31,10 +31,7 @@ export default class MengerSponge extends Cube {
     if (this.iterations !== 0) {
       
       // Recursive part of the fractal
-      this.createChildSponges();
-
-      // Cubes which are not part of the fractal (used in the animation process)
-      this.createExcludedCubes(); 
+      this.createChildElements();
 
     }
 
@@ -67,57 +64,40 @@ export default class MengerSponge extends Cube {
     }
   }
 
-  private createChildSponges(): void {
+  private createChildElements(): void {
 
-    let childSide = this.side / 3;
+    // Reset the arrays if they weren't empty already
+    this.childSponges = [];
+    this.excludedCubes = [];
 
-    // Create the direct child Menger sponges and keep a reference to them
 
-    // Helper function to create new sponges
-    let addChildSponge = (relativePosX: number, relativePosY: number, relativePosZ: number) => {
+    const childSide = this.side / 3;
+
+    // Helper functions for creating new sponges and cubes
+    const addChildSponge = (relativePosX: number, relativePosY: number, relativePosZ: number) => {
       let newSponge = new MengerSponge(new p5.Vector(this.pos.x + relativePosX, this.pos.y + relativePosY, this.pos.z + relativePosZ), childSide, this.color, this.iterations - 1);
       newSponge.showExcludedCubes = this.showExcludedCubes;
       
       this.childSponges.push(newSponge);
     };
-
-    for (let y = -childSide; y <= childSide; y += childSide) {
-
-      addChildSponge(+childSide, y, +childSide);
-      addChildSponge(+childSide, y, -childSide);
-      addChildSponge(-childSide, y, +childSide);
-      addChildSponge(-childSide, y, -childSide);
-      
-      if (y != 0) {
-        addChildSponge(0, y, +childSide);
-        addChildSponge(0, y, -childSide);
-        addChildSponge(+childSide, y, 0);
-        addChildSponge(-childSide, y, 0);
-      }
-
-    }
-    
-  }
-
-  private createExcludedCubes(): void {
-
-    let childSide = this.side / 3;
-
-    // Create the direct child cubes and keep a reference to them
-
-    // Helper function to create new cubes
-    let addExcludedCube = (relativePosX: number, relativePosY: number, relativePosZ: number) => {
+    const addExcludedCube = (relativePosX: number, relativePosY: number, relativePosZ: number) => {
       this.excludedCubes.push(new Cube(new p5.Vector(this.pos.x + relativePosX, this.pos.y + relativePosY, this.pos.z + relativePosZ), childSide, this.color));
     };
 
-    for (let y = -childSide; y <= childSide; y += childSide) {
-      addExcludedCube(0, y, 0);
+    for (let x = -childSide; x <= childSide; x += childSide) {
+      for (let y = -childSide; y <= childSide; y += childSide) {
+        for (let z = -childSide; z <= childSide; z += childSide) {
+          
+          // Inspiration from https://www.youtube.com/watch?v=LG8ZK-rRkXo
+          if (Math.abs(x) + Math.abs(y) + Math.abs(z) > childSide) {
+            addChildSponge(x, y, z);
+          } else {
+            addExcludedCube(x, y, z);
+          }
+
+        } 
+      }
     }
-    
-    addExcludedCube(0, 0, +childSide);
-    addExcludedCube(0, 0, -childSide);
-    addExcludedCube(+childSide, 0, 0);
-    addExcludedCube(-childSide, 0, 0);
 
   }
 
@@ -201,14 +181,7 @@ export default class MengerSponge extends Cube {
 
     // Simple case: this wasn't even a fractal
     if (this.iterations === 1) {
-
-      // Create all the child elements of the fractal
-
-      this.childSponges = [];
-      this.createChildSponges();
-
-      this.excludedCubes = [];
-      this.createExcludedCubes();
+      this.createChildElements();
 
       return;
     }
