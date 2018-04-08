@@ -9,9 +9,10 @@ import Cube from './Cube.js';
  */
 export default class MengerSponge extends Cube {
 
-  private childSponges: MengerSponge[] = [];
-  private excludedCubes: Cube[] = [];
+  public childSponges: MengerSponge[] = [];
+  public excludedCubes: Cube[] = [];
 
+  private _color: number[] = [];
   private _showExcludedCubes: boolean = false;
 
 
@@ -21,8 +22,7 @@ export default class MengerSponge extends Cube {
    * @param color Color assigned to the child cubes of the sponge
    * @param iterations Integer number which determines the detail and complexity of the fractal
    */
-  public constructor(public pos: number[], public side: number, public color: number[], public iterations: number) {
-
+  public constructor(public pos: number[], public side: number, color: number[], public iterations: number) {
     super(pos, side, color);
 
     this.iterations = iterations;
@@ -36,7 +36,7 @@ export default class MengerSponge extends Cube {
     }
 
     this.showExcludedCubes = false;
-    
+    this.color = color;
   }
 
   /**
@@ -60,6 +60,24 @@ export default class MengerSponge extends Cube {
       // Recursively assign the poperty to every child sponge
       for (const mengerSponge of this.childSponges) {
         mengerSponge.showExcludedCubes = this._showExcludedCubes;
+      }
+    }
+  }
+
+  /**
+   * The color of the MengerSponge (doesn't affect the excluded cubes).
+   */
+  public get color(): number[] {
+    return this._color;
+  }
+
+  public set color(value: number[]) {
+    this._color = value;
+
+    // The color is also set by the Cube constructor, before the childSponges array is even initialized, so make sure that it has been created
+    if (this.iterations !== 0 && this.childSponges !== undefined) {
+      for (const sponge of this.childSponges) {
+        sponge.color = this._color;
       }
     }
   }
