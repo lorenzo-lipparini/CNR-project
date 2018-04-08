@@ -45,7 +45,14 @@ export class PlayingAnimation<T, U extends keyof T> {
     // Instead of copying the entire object, only take the values in the pickedValues list of the animation
     this.initialValues = {} as Pick<T, U>;
     for (const property of animation.pickedProperties) {
-      this.initialValues[property] = target[property];
+      const value = target[property];
+
+      if (value instanceof Array) {
+        // Shallow copy arrays for vector animations
+        this.initialValues[property] = value.slice() as any;
+      } else {
+        this.initialValues[property] = value;
+      }
     }
     
     // Convert the duration from seconds to frames
@@ -62,7 +69,7 @@ export class PlayingAnimation<T, U extends keyof T> {
    * @returns true if the animation has finished, false otherwise
    */
   public update(): boolean {
-    let progress = (frameCount - this.beginFrame) / this.frameDuration;
+    const progress = (frameCount - this.beginFrame) / this.frameDuration;
     
     if (progress >= this.keyProgressValues[this.nextValueIndex]) { // If the animation has reached a key frame
       // Run that exact frame
@@ -218,15 +225,15 @@ export class PropertyAnimation<T, U extends keyof T> extends Animation<T, U> {
 }
 
 
-// A linear animation can only act on numeric properties, this interface is used to express that restriction
-type HasNumber<U extends string> = {
-  [Key in U]: number;
-}
+// A linear animation can only act on numbers or vectors, this interface is used to express that restriction
+type HasAnimatable<U extends string> = {
+  [K in U]: number | number[];
+};
 
 /**
  * Represents a linear PropertyAnimation.
  */
-export class LinearAnimation<T extends HasNumber<U>, U extends keyof T> extends PropertyAnimation<T, U> {
+export class LinearAnimation<T extends HasAnimatable<U>, U extends keyof T> extends PropertyAnimation<T, U> {
 
   /** 
    * @param property The property of the target to animate
@@ -234,25 +241,36 @@ export class LinearAnimation<T extends HasNumber<U>, U extends keyof T> extends 
    * @param initialValue The value set to the property at the beginning of the animation
    * @param finalValue The value that the property will have at the end of the animation
    */
-  public constructor(property: U, duration: number, initialValue: number, finalValue: number);
+  public constructor(property: U, duration: number, initialValue: T[U], finalValue: T[U]);
   /**
    * @param property The property of the target to animate
    * @param duration The duration of the animation (in seconds)
    * @param finalValue The value that the property will have at the end of the animation
    */
-  public constructor(property: U, duration: number, finalValue: number);
-  public constructor(property: U, duration: number, firstValue: number, secondValue?: number) {
-    let valueFunction: (progress: number, initialValue: number) => number;
+  public constructor(property: U, duration: number, finalValue: T[U]);
+  public constructor(property: U, duration: number, firstValue: T[U], secondValue?: T[U]) {
+    // TODO: find a way to be more type safe
+    // Unfortunately, type guards don't restrict the type inside closures
+
+    let valueFunction: (progress: number, firstValue: any) => any;
 
     if (secondValue === undefined) {
-      let finalValue = firstValue;
+      const finalValue = firstValue;
 
-      valueFunction = (progress, initialValue) => initialValue + progress * (finalValue - initialValue);
+      if (typeof finalValue === 'number') {
+        valueFunction = (progress: number, initialValue: number) => initialValue + progress * ((finalValue as number) - initialValue)
+      } else { // finalValue: number[]
+        valueFunction = (progress: number, initialValue: number[]) => initialValue.map((value, i) => value + progress * ((finalValue as number[])[i] - value));
+      }
     } else {
-      let initialValue = firstValue;
-      let finalValue = secondValue;
+      const initialValue = firstValue;
+      const finalValue = secondValue;
 
-      valueFunction = progress => initialValue + progress * (finalValue - initialValue);
+      if (typeof finalValue === 'number') {
+        valueFunction = (progress: number) => (initialValue as number) + progress * ((finalValue as number) - (initialValue as number));
+      } else { // finalValue: number[]
+        valueFunction = (progress: number, initialValue: number[]) => initialValue.map((value, i) => value + progress * ((finalValue as number[])[i] - value));
+      }
     }
 
     super(property, duration, valueFunction);
