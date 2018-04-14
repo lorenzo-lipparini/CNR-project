@@ -82,8 +82,6 @@ export class PlayingAnimation<T, U extends keyof T> {
 
       // Wait for the next value to be reached
       this.nextValueIndex++;
-
-      return false;
     }
 
     this.updateTarget(this.target, progress, this.initialValues);
