@@ -202,6 +202,18 @@ export class Animation<T, U extends keyof T> {
     return result;
   }
 
+  /**
+   * Creates a new animation based on the current one, where the flow of time is
+   * changed as indicated by the transform.
+   * 
+   * @param transform Trasform which takes the original progress and maps it to a new value
+   */
+  public timeTrasform(transform: (progress: number) => number): Animation<T, U> {
+    return new Animation(this.duration, (target, progress, initialValues) => {
+      this.updateTarget(target, transform(progress), initialValues);
+    }, this.pickedProperties);
+  }
+
 }
 
 /**
@@ -274,6 +286,13 @@ export class LinearAnimation<T extends HasAnimatable<U>, U extends keyof T> exte
     }
 
     super(property, duration, valueFunction);
+  }
+
+  /**
+   * Returns a new animation which does the same as the current one but in harmonic motion.
+   */
+  public toHarmonic(): Animation<T, U> {
+    return this.timeTrasform(progress => 1/2 * (1 + Math.sin(Math.PI * (progress - 1/2))));
   }
 
 }
