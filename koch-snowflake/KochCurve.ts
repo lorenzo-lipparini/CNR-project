@@ -7,7 +7,7 @@ import { Animation, Animatable } from '../lib/animation.js';
  */
 export default class KochCurve extends Animatable {
 
-  private childCurves: KochCurve[] = [];
+  public childCurves: KochCurve[] = [];
   
   private _tanAngle: number = -1;
 
