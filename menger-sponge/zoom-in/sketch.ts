@@ -55,8 +55,8 @@ async function main() {
     const outOfFocusSpongeColor = mengerSponge.color.map(value => value / fadeRatio);
     const fadeOutAnimation = new LinearAnimation<MengerSponge, 'color'>('color', 3, outOfFocusSpongeColor);
 
-    const outOfFocusFlashColor = lerpColor(color(outOfFocusSpongeColor), color('white'), 0.2);
-    const outOfFocusCubeAnimation = flashWithColor([red(outOfFocusFlashColor), blue(outOfFocusFlashColor), green(outOfFocusFlashColor)])
+    const outOfFocusFlashColor = [red(flashColor), green(flashColor), blue(flashColor)].map(value => value / fadeRatio);
+    const outOfFocusCubeAnimation = flashWithColor(outOfFocusFlashColor)
                             .concat(scaleDown);
     
 
@@ -78,8 +78,8 @@ async function main() {
       sponge.animate(fadeOutAnimation);
     }
 
-    const zoomAnimation = new LinearAnimation<typeof drawOptions, 'zoomPos'>('zoomPos', 3, zoomedSponge.pos)
-                .parallel(new LinearAnimation<typeof drawOptions, 'zoomFactor'>('zoomFactor', 3, 2.5 * drawOptions.zoomFactor));
+    const zoomAnimation = new LinearAnimation<typeof drawOptions, 'zoomPos'>('zoomPos', 3, zoomedSponge.pos).toHarmonic()
+                .parallel(new LinearAnimation<typeof drawOptions, 'zoomFactor'>('zoomFactor', 3, 2.5 * drawOptions.zoomFactor).toHarmonic());
 
     await animate(drawOptions, zoomAnimation);
 
