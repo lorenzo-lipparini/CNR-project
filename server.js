@@ -34,7 +34,7 @@ app.get('/CNR/*/', (req, res) => {
 });
 
 
-let videoInfo = null;
+let videoInfo = undefined;
 let receivedFrames = 0;
 
 app.get('/video-service/new', (req, res) => {
@@ -43,7 +43,7 @@ app.get('/video-service/new', (req, res) => {
   clearOutDir();
 
   // Reset all the variables
-  videoInfo = null;
+  videoInfo = undefined;
   receivedFrames = 0;
 
   res.sendStatus(200);
@@ -69,7 +69,7 @@ app.post('/video-service/give-info', (req, res) => {
 
 
 function checkAllFramesReceived() {
-  if (videoInfo !== null && receivedFrames === videoInfo.framesNumber) {
+  if (videoInfo !== undefined && receivedFrames === videoInfo.framesNumber) {
     const { frameRate, resolution: res } = videoInfo; 
 
     console.log('All frames received, running FFmpeg...');
