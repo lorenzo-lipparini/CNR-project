@@ -241,11 +241,12 @@ type HasAnimatable<U extends string> = {
 };
 
 /**
- * Represents a linear PropertyAnimation.
+ * Used to create animations which can act on numbers or number arrays,
+ * given only the initial conditions and the final values.
  */
-export class LinearAnimation<T extends HasAnimatable<U>, U extends keyof T> extends PropertyAnimation<T, U> {
+const createNumericAnimation = (numberValueFunction: (progress: number, initialValue: number, finalValue: number) => number) => class <T extends HasAnimatable<U>, U extends keyof T> extends PropertyAnimation<T, U> {
 
-  /** 
+  /**
    * @param property The property of the target to animate
    * @param duration The duration of the animation (in seconds)
    * @param initialValue The value set to the property at the beginning of the animation
@@ -262,38 +263,46 @@ export class LinearAnimation<T extends HasAnimatable<U>, U extends keyof T> exte
     // TODO: find a way to be more type safe
     // Unfortunately, type guards don't restrict the type inside closures
 
-    let valueFunction: (progress: number, firstValue: any) => any;
+    let valueFunction: (progress: number, initialValue: any) => any;
 
     if (secondValue === undefined) {
       const finalValue = firstValue;
 
       if (typeof finalValue === 'number') {
-        valueFunction = (progress: number, initialValue: number) => initialValue + progress * ((finalValue as number) - initialValue)
+        valueFunction = (progress, initialValue) => numberValueFunction(progress, initialValue, finalValue);
       } else { // finalValue: number[]
-        valueFunction = (progress: number, initialValue: number[]) => initialValue.map((value, i) => value + progress * ((finalValue as number[])[i] - value));
+        valueFunction = (progress: number, initialValue: number[]) => initialValue.map((value, i) => numberValueFunction(progress, value, (finalValue as number[])[i]));
       }
     } else {
       const initialValue = firstValue;
       const finalValue = secondValue;
 
       if (typeof finalValue === 'number') {
-        valueFunction = (progress: number) => (initialValue as number) + progress * ((finalValue as number) - (initialValue as number));
+        valueFunction = (progress: number) => numberValueFunction(progress, initialValue as number, finalValue);
       } else { // finalValue: number[]
-        valueFunction = (progress: number, initialValue: number[]) => initialValue.map((value, i) => value + progress * ((finalValue as number[])[i] - value));
+        valueFunction = (progress: number) => (initialValue as number[]).map((value, i) => numberValueFunction(progress, value, (finalValue as number[])[i]));
       }
     }
 
     super(property, duration, valueFunction);
   }
 
-  /**
-   * Returns a new animation which does the same as the current one but in harmonic motion.
-   */
-  public toHarmonic(): Animation<T, U> {
-    return this.timeTrasform(progress => 1/2 * (1 + Math.sin(Math.PI * (progress - 1/2))));
-  }
-
 }
+
+/**
+ * Represents a linear PropertyAnimation.
+ */
+export const LinearAnimation = createNumericAnimation(
+  (progress, initialValue, finalValue) => initialValue + progress * (finalValue - initialValue)
+);
+
+/**
+ * Represents a PropertyAnimation where
+ * the property changes in a way that resembles harmonic motion.
+ */
+export const HarmonicAnimation = createNumericAnimation(
+  (progress, initialValue, finalValue) => initialValue + (1/2 * (1 + Math.sin(Math.PI * (progress - 1/2)))) * (finalValue - initialValue)
+);
 
 
 export { default as Animatable } from './animatable.js';

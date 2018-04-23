@@ -1,7 +1,7 @@
 
 import videoSpecs from '../../lib/videoSpecs.js';
 import timer from '../../lib/timer.js';
-import { PropertyAnimation, LinearAnimation, Animation, animate, updateAnimations } from '../../lib/animation.js';
+import { LinearAnimation, HarmonicAnimation, animate, updateAnimations } from '../../lib/animation.js';
 
 import KochCurve from '../KochCurve.js';
 
@@ -40,9 +40,9 @@ async function main() {
     // Make sure that the number of full turns in the previousAngle and the targetAngle match
     targetAngle += (2*Math.PI) * Math.ceil((previousAngle - targetAngle) / (2*Math.PI));
     
-    const zoomAnimation = new LinearAnimation<typeof drawOptions, 'zoomPos'>('zoomPos', 3, zoomCenter).toHarmonic()
-                .parallel(new LinearAnimation<typeof drawOptions, 'zoomFactor'>('zoomFactor', 3, 3 * drawOptions.zoomFactor).toHarmonic())
-                .parallel(new LinearAnimation<typeof drawOptions, 'angle'>('angle', 3, targetAngle).toHarmonic());
+    const zoomAnimation = new HarmonicAnimation<typeof drawOptions, 'zoomPos'>('zoomPos', 3, zoomCenter)
+                .parallel(new HarmonicAnimation<typeof drawOptions, 'zoomFactor'>('zoomFactor', 3, 3 * drawOptions.zoomFactor))
+                .parallel(new HarmonicAnimation<typeof drawOptions, 'angle'>('angle', 3, targetAngle));
 
     await animate(drawOptions, zoomAnimation);
   }

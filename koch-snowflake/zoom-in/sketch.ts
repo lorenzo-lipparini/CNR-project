@@ -1,7 +1,7 @@
 
 import videoSpecs from '../../lib/videoSpecs.js';
 import timer from '../../lib/timer.js';
-import { PropertyAnimation, LinearAnimation, Animation, animate, updateAnimations } from '../../lib/animation.js';
+import { LinearAnimation, HarmonicAnimation, animate, updateAnimations } from '../../lib/animation.js';
 
 import KochCurve from '../KochCurve.js';
 
@@ -26,7 +26,7 @@ async function main() {
 
   let childCurve = kochCurve;
 
-  await animate(drawOptions, new LinearAnimation<typeof drawOptions, 'zoomPos'>('zoomPos', 4, kochCurve.start).toHarmonic());
+  await animate(drawOptions, new HarmonicAnimation<typeof drawOptions, 'zoomPos'>('zoomPos', 4, kochCurve.start));
   await timer(0.5);
 
   for (let i = 0; i < 5; i++) {
@@ -35,7 +35,7 @@ async function main() {
 
     childCurve = childCurve.childCurves[0];
 
-    await animate(drawOptions, new LinearAnimation<typeof drawOptions, 'zoomFactor'>('zoomFactor', 3, 3 * drawOptions.zoomFactor).toHarmonic());
+    await animate(drawOptions, new HarmonicAnimation<typeof drawOptions, 'zoomFactor'>('zoomFactor', 3, 3 * drawOptions.zoomFactor));
   }
 
 }

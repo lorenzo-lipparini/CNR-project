@@ -1,7 +1,7 @@
 
 import videoSpecs from '../../lib/videoSpecs.js';
 import timer from '../../lib/timer.js';
-import { PropertyAnimation, LinearAnimation, Animation, animate, updateAnimations } from '../../lib/animation.js';
+import { PropertyAnimation, LinearAnimation, HarmonicAnimation, animate, updateAnimations } from '../../lib/animation.js';
 import FrameCapture from '../../lib/FrameCapture.js';
 
 import Cube from '../Cube.js';
@@ -78,8 +78,8 @@ async function main() {
       sponge.animate(fadeOutAnimation);
     }
 
-    const zoomAnimation = new LinearAnimation<typeof drawOptions, 'zoomPos'>('zoomPos', 3, zoomedSponge.pos).toHarmonic()
-                .parallel(new LinearAnimation<typeof drawOptions, 'zoomFactor'>('zoomFactor', 3, 2.5 * drawOptions.zoomFactor).toHarmonic());
+    const zoomAnimation = new HarmonicAnimation<typeof drawOptions, 'zoomPos'>('zoomPos', 3, zoomedSponge.pos)
+                .parallel(new HarmonicAnimation<typeof drawOptions, 'zoomFactor'>('zoomFactor', 3, 2.5 * drawOptions.zoomFactor));
 
     await animate(drawOptions, zoomAnimation);
 
