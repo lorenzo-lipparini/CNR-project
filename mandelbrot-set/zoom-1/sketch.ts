@@ -1,7 +1,7 @@
 
 import videoSpecs from '../../lib/videoSpecs.js';
 import FrameCapture from '../../lib/FrameCapture.js';
-import { LinearAnimation, animate, updateAnimations } from '../../lib/animation.js';
+import { ExponentialAnimation, animate, updateAnimations } from '../../lib/animation.js';
 
 import Mandelbrot from '../Mandelbrot.js';
 
@@ -20,7 +20,7 @@ window.setup = () => {
 
 async function main() {
 
-  await animate(mandelbrot, new LinearAnimation<Mandelbrot, 'zoomFactor'>('zoomFactor', 20, 50).toHarmonic());
+  await animate(mandelbrot, new ExponentialAnimation<Mandelbrot, 'zoomFactor'>('zoomFactor', 20, 50));
 
   FrameCapture.stop();
 }

@@ -304,6 +304,14 @@ export const HarmonicAnimation = createNumericAnimation(
   (progress, initialValue, finalValue) => initialValue + (1/2 * (1 + Math.sin(Math.PI * (progress - 1/2)))) * (finalValue - initialValue)
 );
 
+/**
+ * Represents a PropertyAnimation where the value changes exponentially over time,
+ * this is often used to create zoom animations.
+ */
+export const ExponentialAnimation = createNumericAnimation(
+  (progress, initialValue, finalValue) => initialValue * Math.pow(finalValue / initialValue, progress)
+);
+
 
 export { default as Animatable } from './animatable.js';
 export { animate, updateAnimations } from './animate.js';
