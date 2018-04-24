@@ -21,9 +21,12 @@ namespace FrameCapture {
    * if not povided, the video must be manually terminated with the stop() function
    */
   export function acquire(duration?: number): void {
-
     // Make sure to get the canvas after createCanvas() has been called in setup()
-    canvas = document.getElementsByTagName('canvas')[0];
+    canvas = document.querySelector('canvas')!;
+    
+    // Ensure that the number of pixels in the canvas is constant
+    // and not influenced by the pixel density of the screen
+    pixelDensity(1);
 
     framesNumber = -1;
 
@@ -53,6 +56,7 @@ namespace FrameCapture {
 
     fetch('/video-service/new').catch(() => alert('Server offline.'));
 
+    console.time('Rendering time');
   }
 
   /**
@@ -60,7 +64,6 @@ namespace FrameCapture {
    * to be called at the end of draw().
    */
   export function update(): void {
-    
     if (!active) {
       return;
     }
@@ -84,14 +87,12 @@ namespace FrameCapture {
       stop();
       return;
     }
-
   }
 
   /**
    * Stops the frame acquisition and tells the server to export the video.
    */
   export function stop(): void {
-
     framesNumber = -1;
     active = false;
 
@@ -104,10 +105,11 @@ namespace FrameCapture {
         ...videoSpecs,
         framesNumber: acquiredFrames
       })
-    });
+    }).then(() => alert('Finished.'));
 
     noLoop();
 
+    console.timeEnd('Rendering time');
   }
 
 }
