@@ -1,8 +1,7 @@
 
-export const VERT_SRC = `
+export const vertSrc = `
 
 attribute vec3 aPosition;
-precision highp float;
 
 void main() {
   gl_Position = vec4(aPosition, 1.0);
@@ -10,7 +9,7 @@ void main() {
 
 `;
 
-export const FRAG_SRC = `
+const makeFragSrc = (setColor: string) => `
 
 precision highp float;
 
@@ -39,14 +38,38 @@ void main() {
     }
   }
 
-  float percent = float(steps) / float(maxIterations);
-  gl_FragColor = (steps == -1) ? vec4(0.0, 0.0, 0.0, 1.0) : vec4(
-    min(1.0, percent * 3.0),
-    min(1.0, max(0.0, (percent - 0.33) * 3.0)),
-    min(1.0, max(0.0, (percent - 0.66) * 3.0)),
-    1.0
-  );
+  ${setColor}
   
 }
 
 `;
+
+export const fragSrcs = {
+  
+  'simple-red': makeFragSrc(`
+
+    float percent = float(steps) / 1000.0;
+  
+    gl_FragColor = (steps == -1) ? vec4(0.0, 0.0, 0.0, 1.0) : vec4(
+      min(1.0, percent * 3.0),
+      min(1.0, max(0.0, (percent - 0.33) * 3.0)),
+      min(1.0, max(0.0, (percent - 0.66) * 3.0)),
+      1.0
+    );
+
+  `),
+
+  'fire-red': makeFragSrc(`
+
+  float percent = float(steps - 50 * (steps / 50)) / 50.0;
+  
+    gl_FragColor = (steps == -1) ? vec4(0.0, 0.0, 0.0, 1.0) : vec4(
+      min(1.0, percent * 3.0),
+      min(1.0, max(0.0, (percent - 0.33) * 3.0)),
+      min(1.0, max(0.0, (percent - 0.66) * 3.0)),
+      1.0
+    );
+
+  `)
+
+};

@@ -7,7 +7,7 @@ let mandelbrot: Mandelbrot;
 window.setup = () => {
   createCanvas(600, 600, WEBGL);
   
-  mandelbrot = new Mandelbrot([0, 0], 1/4, 100);
+  mandelbrot = new Mandelbrot([0, 0], 1/4, 100, 'simple-red');
 
   noLoop();
 };
