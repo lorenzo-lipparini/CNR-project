@@ -1,5 +1,6 @@
 
 import videoSpecs from '../../lib/videoSpecs.js';
+import FrameCapture from '../../lib/FrameCapture.js';
 import timer from '../../lib/timer.js';
 import { LinearAnimation } from '../../lib/animation.js';
 
@@ -15,9 +16,9 @@ window.setup = () => {
 
   kochSnowflake = new KochSnowflake([0, 0], width / 3, 0);
 
-  frameRate(60);
-
   main();
+
+  FrameCapture.acquire();
 };
 
 async function main() {
@@ -35,11 +36,13 @@ async function main() {
     await timer(1);
   }
 
+  FrameCapture.stop();
 }
 
 window.draw = () => {
   timer.update();
 
+  
   background(0);
 
   translate(width / 2, height / 2);
@@ -48,5 +51,8 @@ window.draw = () => {
   stroke(255, 255, 255);
   noFill();
 
-  kochSnowflake.show();  
+  kochSnowflake.show();
+
+
+  FrameCapture.update();  
 };

@@ -1,5 +1,6 @@
 
 import videoSpecs from '../../lib/videoSpecs.js';
+import FrameCapture from '../../lib/FrameCapture.js';
 import timer from '../../lib/timer.js';
 import { LinearAnimation, HarmonicAnimation, animate, updateAnimations } from '../../lib/animation.js';
 
@@ -14,9 +15,9 @@ window.setup = () => {
 
   kochCurve = new KochCurve([- width / 3, 0], [ width / 3, 0], 3);
 
-  frameRate(60);
-
   main();
+
+  FrameCapture.acquire();
 };
 
 
@@ -38,6 +39,7 @@ async function main() {
     await animate(drawOptions, new HarmonicAnimation<typeof drawOptions, 'zoomFactor'>('zoomFactor', 3, 3 * drawOptions.zoomFactor));
   }
 
+  FrameCapture.stop();
 }
 
 const drawOptions = {
@@ -64,4 +66,5 @@ window.draw = () => {
 
   kochCurve.show();
 
+  FrameCapture.update();
 };

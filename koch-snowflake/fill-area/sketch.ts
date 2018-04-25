@@ -15,21 +15,22 @@ window.setup = () => {
 
   kochSnowflake = new KochSnowflake([0, 0], width / 3, 5);
 
-  frameRate(60);
-
-  FrameCapture.acquire(3);
+  FrameCapture.acquire();
 
   main();
 };
 
-function main(): void {
+async function main() {
+  
   const sin60 = 0.8660254037844386;
   const cot60 = 0.5773502691896257;
 
   areaRectangle.baseY = kochSnowflake.side * (1/3 * sin60 + 1/2 * cot60);
   areaRectangle.maxHeight = 2 * (areaRectangle.baseY - kochSnowflake.center[0]);
 
-  animate(areaRectangle, new LinearAnimation<typeof areaRectangle, 'height'>('height', 3, areaRectangle.maxHeight, 0));
+  await animate(areaRectangle, new LinearAnimation<typeof areaRectangle, 'height'>('height', 3, areaRectangle.maxHeight, 0));
+
+  FrameCapture.stop();
 }
 
 window.draw = () => {

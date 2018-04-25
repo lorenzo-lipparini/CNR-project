@@ -1,8 +1,8 @@
 
 import videoSpecs from '../../lib/videoSpecs.js';
+import FrameCapture from '../../lib/FrameCapture.js';
 import timer from '../../lib/timer.js';
 import { PropertyAnimation, LinearAnimation, HarmonicAnimation, animate, updateAnimations } from '../../lib/animation.js';
-import FrameCapture from '../../lib/FrameCapture.js';
 
 import Cube from '../Cube.js';
 import MengerSponge from '../MengerSponge.js';
@@ -15,8 +15,6 @@ window.setup = () => {
   createCanvas(videoSpecs.resolution.x, videoSpecs.resolution.y, WEBGL);
 
   mengerSponge = new MengerSponge([0, 0, 0], height / 2, [50, 100, 255], 0);
-
-  frameRate(60);
 
   main();
 
