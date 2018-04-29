@@ -42,9 +42,4 @@ export default class Animatable {
 
   }
 
-  /**
-   * Draws the object on the canvas.
-   */
-  public show(): void { /* To be ovverrided */ }
-
 }

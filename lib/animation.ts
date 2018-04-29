@@ -212,6 +212,14 @@ export class Animation<T, U extends keyof T> {
     }, this.pickedProperties);
   }
 
+  /**
+   * Creates a harmonic version of the current animation;
+   * In the simplest case, when used on a linear animation, it returns a harmonic animation.
+   */
+  public harmonize(): Animation<T, U> {
+    return this.timeTrasform(progress => (1/2 * (1 + Math.sin(Math.PI * (progress - 1/2)))));
+  }
+
 }
 
 /**
