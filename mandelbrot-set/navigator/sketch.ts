@@ -4,10 +4,12 @@ import { MandelbrotRenderer } from '../Mandelbrot.js';
 
 let mandelbrot: MandelbrotRenderer;
 
+let zoomIncrement = 1.1;
+
 window.setup = () => {
   createCanvas(600, 600, WEBGL);
   
-  mandelbrot = new MandelbrotRenderer([0, 0], 1/4, 1600, 'simple-red');
+  mandelbrot = new MandelbrotRenderer([0, 0], 1/4, 'auto', 'fire-red');
 
   noLoop();
 };
@@ -28,23 +30,26 @@ window.mouseClicked = () => {
 window.keyPressed = () => {
   // @ts-ignore
   if (keyCode === UP_ARROW) {
-    mandelbrot.zoomFactor *= 1.05;
+    mandelbrot.zoomFactor *= zoomIncrement;
     redraw();
   }
   // @ts-ignore
   if (keyCode === DOWN_ARROW) {
-    mandelbrot.zoomFactor /= 1.05;
+    mandelbrot.zoomFactor /= zoomIncrement;
     redraw();
   }
 
   // @ts-ignore
   if (keyCode === LEFT_ARROW) {
-    mandelbrot.maxIterations -= 10;
-    redraw();
+    zoomIncrement /= 1.1;
   }
   // @ts-ignore
   if (keyCode === RIGHT_ARROW) {
-    mandelbrot.maxIterations += 10;
-    redraw();
+    zoomIncrement *= 1.1;
+  }
+
+  // @ts-ignore
+  if (keyCode === ENTER) {
+    console.log(mandelbrot.zoomCenter, mandelbrot.zoomFactor);
   }
 }
