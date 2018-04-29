@@ -1,13 +1,13 @@
 
-import Mandelbrot from '../Mandelbrot.js';
+import { MandelbrotRenderer } from '../Mandelbrot.js';
 
 
-let mandelbrot: Mandelbrot;
+let mandelbrot: MandelbrotRenderer;
 
 window.setup = () => {
   createCanvas(600, 600, WEBGL);
   
-  mandelbrot = new Mandelbrot([0, 0], 1/4, 100, 'simple-red');
+  mandelbrot = new MandelbrotRenderer([0, 0], 1/4, 1600, 'simple-red');
 
   noLoop();
 };

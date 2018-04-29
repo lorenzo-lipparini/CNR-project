@@ -2,15 +2,15 @@ import videoSpecs from '../../lib/videoSpecs.js';
 import FrameCapture from '../../lib/FrameCapture.js';
 import { ExponentialAnimation, animate, updateAnimations } from '../../lib/animation.js';
 
-import Mandelbrot from '../Mandelbrot.js';
+import { MandelbrotRenderer } from '../Mandelbrot.js';
 
 
-let mandelbrot: Mandelbrot;
+let mandelbrot: MandelbrotRenderer;
 
 window.setup = () => {
   createCanvas(videoSpecs.resolution.x, videoSpecs.resolution.y, WEBGL);
   
-  mandelbrot = new Mandelbrot([-0.23995, -0.83607], 1/4, true, 'fire-red');
+  mandelbrot = new MandelbrotRenderer([-0.23995, -0.83607], 1/8, 'auto', 'fire-red');
 
   FrameCapture.acquire();
 
@@ -19,7 +19,7 @@ window.setup = () => {
 
 async function main() {
 
-  await animate(mandelbrot, new ExponentialAnimation<Mandelbrot, 'zoomFactor'>('zoomFactor', 30, 16000));
+  await animate(mandelbrot, new ExponentialAnimation<MandelbrotRenderer, 'zoomFactor'>('zoomFactor', 30, 16000));
 
   FrameCapture.stop();
 }

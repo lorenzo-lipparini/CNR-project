@@ -2,7 +2,10 @@
 import { vertSrc, fragSrcs } from './shaders.js';
 
 
-export default class Mandelbrot {
+/**
+ * Provides a simple api to render the Mandelbrot set onto the canvas.
+ */
+export class MandelbrotRenderer {
 
   private autoMaxIterations = false;
 
@@ -15,9 +18,10 @@ export default class Mandelbrot {
   /**
    * @param zoomCenter Initial value for the zoom center
    * @param zoomFactor Initial value for the zoom factor
-   * @param maxIterations Initial value for the maximum number of iterations, should be an integer; if true is passed instead, the value is calculated automatically based on zoomFactor
+   * @param maxIterations Initial value for the maximum number of iterations, should be an integer; if 'auto' is passed instead, the value is calculated automatically based on zoomFactor
+   * @param colorPattern Name of the color pattern to use to render the fractal
    */
-  public constructor(zoomCenter: [number, number], zoomFactor: number, maxIterations: number | true, colorPattern: keyof typeof fragSrcs) {
+  public constructor(zoomCenter: [number, number], zoomFactor: number, maxIterations: number | 'auto', colorPattern: keyof typeof fragSrcs) {
     // The shader must be created inside setup(), so make sure to call this constructor inside that function
     this.shader = createShader(vertSrc, fragSrcs[colorPattern]);
     
@@ -27,42 +31,43 @@ export default class Mandelbrot {
     this.zoomCenter = zoomCenter;
     this.zoomFactor = zoomFactor;
 
-    if (typeof maxIterations === 'number') {
-      this.maxIterations = maxIterations;
-    } else {
+    if (maxIterations === 'auto') {
       this.autoMaxIterations = true;
+    } else {
+      this.maxIterations = maxIterations;
     }
 
     this.shader.setUniform('view', [width, height]);
   }
 
+  public get zoomCenter() {
+    return this._zoomCenter;
+  }
   public set zoomCenter(value: [number, number]) {
     this._zoomCenter = value;
     this.shader.setUniform('zoomCenter', this.zoomCenter);
   }
-  public get zoomCenter() {
-    return this._zoomCenter;
-  }
 
+  public get zoomFactor() {
+    return this._zoomFactor;
+  }
   public set zoomFactor(value: number) {
     this._zoomFactor = value;
     this.shader.setUniform('zoomFactor', this.zoomFactor);
 
     if (this.autoMaxIterations) {
       // This formula is kind of arbitrary, but works well enough
-      this.maxIterations = 110 * Math.log(10 * this.zoomFactor);
+      // TODO: make maxIterations increase more
+      this.maxIterations = 100 * Math.log(10 * this.zoomFactor);
     }
   }
-  public get zoomFactor() {
-    return this._zoomFactor;
-  }
 
+  public get maxIterations() {
+    return this._maxIterations;
+  }
   public set maxIterations(value: number) {
     this._maxIterations = Math.floor(value);
     this.shader.setUniform('maxIterations', this.maxIterations);
-  }
-  public get maxIterations() {
-    return this._maxIterations;
   }
 
 
