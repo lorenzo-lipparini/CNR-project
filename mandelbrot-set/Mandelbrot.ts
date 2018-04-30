@@ -128,7 +128,7 @@ export class MandelbrotNavigator {
     // Progress value corresponding to the instant when the zoom changes direction
     const change = Math.log(intermediateZoomFactor / this.renderer.zoomFactor) / Math.log(intermediateZoomFactor * intermediateZoomFactor / (this.renderer.zoomFactor * zoomFactor));
 
-    const translateAnimation = this.makeTranslateAnimation(duration, change, this.renderer.zoomCenter.splice(0), zoomCenter, this.renderer.zoomFactor, zoomFactor, intermediateZoomFactor).harmonize();
+    const translateAnimation = this.makeTranslateAnimation(duration, change, this.renderer.zoomCenter.splice(0), zoomCenter, this.renderer.zoomFactor, zoomFactor, intermediateZoomFactor);
 
     const zoomAnimation =
     // First get to the intermediate zoom
@@ -149,22 +149,30 @@ export class MandelbrotNavigator {
     const log_f_m_f_b = Math.log(f_m/f_b);
 
     let k = [0, 0];
+
     let c_1 = [0, 0];
     let c_2 = [0, 0];
     for (let i = 0; i < 2; i++) {
       k[i] = (z_a[i] - z_b[i]) / (change * (1/f_a - 1/f_m)/log_f_a_f_m + (1 - change) * (1/f_m - 1/f_b)/log_f_m_f_b);
-      c_1[i] = z_a[i] - k[i] * change / (f_a * log_f_a_f_m);
+
+      c_1[i] = z_a[i] - k[i] *    change    / (f_a * log_f_a_f_m);
       c_2[i] = z_b[i] - k[i] * (1 - change) / (f_b * log_f_m_f_b);
     }
 
     return new PropertyAnimation<MandelbrotRenderer, 'zoomCenter'>('zoomCenter', duration,
       t => {
+        const isFirstPhase = t <= change;
+
+        t = isFirstPhase ?
+          1/2 * (1 + Math.sin(Math.PI * (     t       /    change    - 1/2))) :
+          1/2 * (1 + Math.sin(Math.PI * ((t - change) / (1 - change) - 1/2)));
+
         let value: [number, number] = [0, 0];
 
         for (let i = 0; i < 2; i++) {
-          value[i] = (t <= change) ?
-            k[i] * change / (f_a * log_f_a_f_m) * Math.pow(f_a/f_m, t/change) + c_1[i] :
-            k[i] * (1 - change) / (f_m * log_f_m_f_b) * Math.pow(f_m/f_b, (t - change)/(1 - change)) + c_2[i];
+          value[i] = isFirstPhase ?
+            k[i] *    change    / (f_a * log_f_a_f_m) * Math.pow(f_a/f_m, t) + c_1[i] :
+            k[i] * (1 - change) / (f_m * log_f_m_f_b) * Math.pow(f_m/f_b, t) + c_2[i];
         }
 
         return value;

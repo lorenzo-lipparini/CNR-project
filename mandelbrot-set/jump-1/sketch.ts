@@ -37,8 +37,6 @@ async function main() {
 
 }
 
-let prev = 1;
-
 window.draw = () => {
   timer.update();
 
