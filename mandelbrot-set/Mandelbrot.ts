@@ -1,7 +1,7 @@
 
 import { vertSrc, fragSrcs } from './shaders.js';
 
-import { Animatable, Animation, LinearAnimation, HarmonicAnimation, ExponentialAnimation, PropertyAnimation } from '../lib/animation.js';
+import { Animatable, Animation, ExponentialAnimation, PropertyAnimation } from '../lib/animation.js';
 
 
 /**
@@ -16,6 +16,7 @@ export class MandelbrotRenderer extends Animatable {
   private _maxIterations: number = 0;
 
   private shader: p5.Shader;
+
 
   /**
    * @param zoomCenter Initial value for the zoom center
@@ -76,7 +77,7 @@ export class MandelbrotRenderer extends Animatable {
 
 
   /**
-   * Renders the image of the fractal into the canvas, to be called in draw().
+   * Renders the image of the fractal onto the canvas, to be called in draw().
    */
   public render(): void {
     this.updateAnimations();
@@ -99,88 +100,72 @@ export class MandelbrotNavigator {
   constructor(private readonly renderer: MandelbrotRenderer) { }
 
   /**
-   * Smoothly zooms from the current center to the given one.
+   * Smoothly zooms from the current position to the given one while adjusting the zoom.
    * 
    * @param duration Length of the animation (in seconds)
    * @param zoomCenter Complex number to zoom on
    * @param zoomFactor Positive number which tells how much to zoom on the point
    */
   public zoomTo(duration: number, zoomCenter: [number, number], zoomFactor: number): Promise<void> {
-    const zoomAnimation = new HarmonicAnimation<MandelbrotRenderer, 'zoomCenter'>('zoomCenter', duration, zoomCenter)
-                  .parallel(new ExponentialAnimation<MandelbrotRenderer, 'zoomFactor'>('zoomFactor', duration, zoomFactor).harmonize());
+    const zoomAnimation = this.makeTranslateAnimation(duration, this.renderer.zoomCenter, zoomCenter, this.renderer.zoomFactor, zoomFactor)
+                .parallel(new ExponentialAnimation<MandelbrotRenderer, 'zoomFactor'>('zoomFactor', duration, zoomFactor))
+                .harmonize();
 
     return this.renderer.animate(zoomAnimation);
   }
 
   /**
-   * Creates a zoom animation where the camera zooms out until it shows both the points,
-   * and then zooms on the target, all that while moving the center to the new position.
+   * Creates a zoom animation where the camera zooms out until it shows both the points on the plane
+   * and then zooms on the target, all that while moving to the new position.
    * 
    * @param duration Length of the animation (in seconds)
    * @param zoomCenter Complex number to zoom on
    * @param zoomFactor Positive number which tells how much to zoom on the point
    */
-  public jumpTo(duration: number, zoomCenter: [number, number], zoomFactor: number): Promise<void> {
-    // At the intermediate zoom, it should be possible to see both complex numbers on the plane;
-    // Setting the zoom to the inverse of the distance between the two complex numbers (scaled by some value) should do the trick
-    const intermediateZoomFactor = 0.25 / Math.hypot(zoomCenter[0] - this.renderer.zoomCenter[0], zoomCenter[1] - this.renderer.zoomCenter[1]);
+  public async jumpTo(duration: number, zoomCenter: [number, number], zoomFactor: number): Promise<void> {
+    const [intermediateZoomCenter, intermediateZoomFactor] = this.calculateIntermediateZoomValues(this.renderer.zoomCenter, zoomCenter, this.renderer.zoomFactor, zoomFactor);
+    // Instant in time when the zoom changes direction
+    const change = duration * Math.log(intermediateZoomFactor / this.renderer.zoomFactor) / Math.log(intermediateZoomFactor * intermediateZoomFactor / (this.renderer.zoomFactor * zoomFactor));
 
-    // Progress value corresponding to the instant when the zoom changes direction
-    const change = Math.log(intermediateZoomFactor / this.renderer.zoomFactor) / Math.log(intermediateZoomFactor * intermediateZoomFactor / (this.renderer.zoomFactor * zoomFactor));
-
-    const translateAnimation = this.makeTranslateAnimation(duration, change, this.renderer.zoomCenter.splice(0), zoomCenter, this.renderer.zoomFactor, zoomFactor, intermediateZoomFactor);
-
-    const zoomAnimation =
-    // First get to the intermediate zoom
-            new ExponentialAnimation<MandelbrotRenderer, 'zoomFactor'>('zoomFactor', change * duration, intermediateZoomFactor).harmonize()
-    // Then get to the final value
-    .concat(new ExponentialAnimation<MandelbrotRenderer, 'zoomFactor'>('zoomFactor', (1 - change) * duration, intermediateZoomFactor, zoomFactor).harmonize());
-
-    const jumpAnimation = translateAnimation.parallel(zoomAnimation);
-
-    return this.renderer.animate(jumpAnimation);
+    await this.zoomTo(change, intermediateZoomCenter, intermediateZoomFactor);
+    await this.zoomTo(duration - change, zoomCenter, zoomFactor);
   }
 
-  private makeTranslateAnimation(duration: number, change: number , z_a: number[], z_b: number[], f_a: number, f_b: number, f_m: number): Animation<MandelbrotRenderer, 'zoomCenter'> {
+  private makeTranslateAnimation(duration: number, z_a: [number, number], z_b: [number, number], f_a: number, f_b: number): Animation<MandelbrotRenderer, 'zoomCenter'> {
+    return new PropertyAnimation<MandelbrotRenderer, 'zoomCenter'>('zoomCenter', duration, t => {
+      const f_t = this.renderer.zoomFactor;
+
+      let value: [number, number] = [0, 0];
+      for (let i = 0; i < 2; i++) {
+        value[i] = z_a[i] + (1 - f_a/f_t)/(1 - f_a/f_b) * (z_b[i] - z_a[i]);
+      }
+
+      return value;
+    });
+  }
+
+  private calculateIntermediateZoomValues(z_a: [number, number], z_b: [number, number], f_a: number, f_b : number): [[number, number], number] {
     
-    // Pre-calculate as many values as possible to make the expression lighter to compute
+    // At the intermediate zoom, it should be possible to see both complex numbers on the plane;
+    // Setting the zoom to the inverse of the distance between the two complex numbers (scaled by some factor) should do the trick
+    const f_m = 0.25 / Math.hypot(z_b[0] - z_a[0], z_b[1] - z_a[1]);
+    
+    // The intermediate center is chosen as the only point such that
+    // the resulting maximum translational velocity in the two zooms is the same
+    let z_m: [number, number] = [0, 0];
 
-    const log_f_a_f_m = Math.log(f_a/f_m);
-    const log_f_m_f_b = Math.log(f_m/f_b);
-
-    let k = [0, 0];
-
-    let c_1 = [0, 0];
-    let c_2 = [0, 0];
     for (let i = 0; i < 2; i++) {
-      k[i] = (z_a[i] - z_b[i]) / (change * (1/f_a - 1/f_m)/log_f_a_f_m + (1 - change) * (1/f_m - 1/f_b)/log_f_m_f_b);
-
-      c_1[i] = z_a[i] - k[i] *    change    / (f_a * log_f_a_f_m);
-      c_2[i] = z_b[i] - k[i] * (1 - change) / (f_b * log_f_m_f_b);
+      z_m[i] = ((1/f_m - 1/f_b) * Math.log(f_a/f_m) * z_a[i] + (1/f_a - 1/f_m) * Math.log(f_m/f_b) * z_b[i])
+             / ((1/f_m - 1/f_b) * Math.log(f_a/f_m)          + (1/f_a - 1/f_m) * Math.log(f_m/f_b));
     }
 
-    return new PropertyAnimation<MandelbrotRenderer, 'zoomCenter'>('zoomCenter', duration,
-      t => {
-        const isFirstPhase = t <= change;
-
-        t = isFirstPhase ?
-          1/2 * (1 + Math.sin(Math.PI * (     t       /    change    - 1/2))) :
-          1/2 * (1 + Math.sin(Math.PI * ((t - change) / (1 - change) - 1/2)));
-
-        let value: [number, number] = [0, 0];
-
-        for (let i = 0; i < 2; i++) {
-          value[i] = isFirstPhase ?
-            k[i] *    change    / (f_a * log_f_a_f_m) * Math.pow(f_a/f_m, t) + c_1[i] :
-            k[i] * (1 - change) / (f_m * log_f_m_f_b) * Math.pow(f_m/f_b, t) + c_2[i];
-        }
-
-        return value;
-      }
-    );
-
+    return [z_m, f_m];
   }
 
+
+  /**
+   * Renders the image of the fractal onto the canvas, to be called in draw().
+   */
   public render(): void {
     this.renderer.render();
   }
