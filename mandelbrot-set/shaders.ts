@@ -9,6 +9,13 @@ export const vertSrc = `
 
 `;
 
+/**
+ * Creates to source code for a fragment shader that renders the Mandelbrot set;
+ * for each complex number, the 'steps' variable equals the number of iterations
+ * applied before it escaped.
+ * 
+ * @param setColor String of code where gl_FragColor is set; it can make use of the 'steps' variable
+ */
 const makeFragSrc = (setColor: string) => `
 
   precision highp float;
@@ -68,14 +75,14 @@ function fix(strings: TemplateStringsArray, ...values: (number | string)[]): str
 
 
 /**
- * Creates a shader source which renders the mandelbrot set using only two colors;
- * The colors must be given as three comma-separated floating point values ranging from 0.0 to 1.0 representing the RGB components of the color.
+ * Creates a shader source which renders the Mandelbrot set using only two colors;
+ * The colors must be given as arrays of three numbers in the range [0, 1] representing the RGB components of the color.
  * 
  * @param inColor Color of the points inside the Mandebrot set
  * @param outColor Color of the poins outside the Mandelbrot set
  */
-const makeBinaryPattern = (inColor: string, outColor: string) => makeFragSrc(`
-  gl_FragColor = (steps == -1) ? vec4(${inColor}, 1.0) : vec4(${outColor}, 1.0);
+const makeBinaryPattern = (inColor: [number, number, number], outColor: [number, number, number]) => makeFragSrc(fix`
+  gl_FragColor = (steps == -1) ? vec4(${inColor[0]}, ${inColor[1]}, ${inColor[2]}, 1.0) : vec4(${outColor[0]}, ${outColor[1]}, ${outColor[2]}, 1.0);
 `);
 
 /**
@@ -88,7 +95,7 @@ const makeBinaryPattern = (inColor: string, outColor: string) => makeFragSrc(`
 function makeLerpPattern(inColor: [number, number, number], outColorSteps: [number, number, number][]) {
   let outColorExpr = '';
 
-  // The change in percent iterations between points colored with consecutive f colors
+  // The change in percent iterations between points colored with consecutive step colors
   const interval = 1 / (outColorSteps.length - 1);
 
   for (let i = 1; i < outColorSteps.length; i++) { // Foreach pair of consecutive step colors
@@ -121,8 +128,8 @@ function makeLerpPattern(inColor: [number, number, number], outColorSteps: [numb
 
 export const fragSrcs = {
 
-  'black-and-white': makeBinaryPattern('0.0, 0.0, 0.0', '1.0, 1.0, 1.0'),
-  'white-and-black': makeBinaryPattern('1.0, 1.0, 1.0', '0.0, 0.0, 0.0'),
+  'black-and-white': makeBinaryPattern([0, 0, 0], [1, 1, 1]),
+  'white-and-black': makeBinaryPattern([1, 1, 1], [0, 0, 0]),
   
   'simple-red': makeFragSrc(`
 
