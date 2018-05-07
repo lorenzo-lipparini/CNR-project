@@ -96,25 +96,23 @@ function makeLerpPattern(inColor: [number, number, number], outColorSteps: [numb
   let outColorExpr = '';
 
   // The change in percent iterations between points colored with consecutive step colors
-  const interval = 1 / (outColorSteps.length - 1);
+  const interval = 1 / outColorSteps.length;
 
-  for (let i = 1; i < outColorSteps.length; i++) { // Foreach pair of consecutive step colors
-    const initialColor = outColorSteps[i - 1];
-    const finalColor = outColorSteps[i];
+  for (let i = 0; i < outColorSteps.length; i++) { // Foreach pair of consecutive step colors
+    const initialColor = outColorSteps[i];
+    // In the last step, transition back to the first color
+    const finalColor = (i === outColorSteps.length - 1) ? outColorSteps[0] : outColorSteps[i + 1];
 
-    let gradientExpr = 'vec4(';
-    for (let j = 0; j < 3; j++) { // Foreach color component
-      // Write the code for a linear interpolation based on the number of steps
-      gradientExpr += fix`${initialColor[j]} + (percent - ${((i - 1) * interval)}) / ${interval} * (${finalColor[j] - initialColor[j]}), `;
-    }
-    gradientExpr += '1.0)';
+    // Perform a linear interpolation between the two step colors
+    const gradientExpr =
+      fix`vec4(${initialColor[0]}, ${initialColor[1]}, ${initialColor[2]}, 1.0) + (percent - ${i * interval}) / ${interval} * vec4(${finalColor[0] - initialColor[0]}, ${finalColor[1] - initialColor[1]}, ${finalColor[2] - initialColor[2]}, 0.0)`;
 
     if (i === outColorSteps.length - 1) { // If this is the last step
       // Complete the previous ternary expression without opening a new one
       outColorExpr += ` : ${gradientExpr}`;
     } else {
       // Build a chain of ternary expressions
-      outColorExpr += fix` : (percent <= ${i * interval}) ? ${gradientExpr}`;
+      outColorExpr += fix` : (percent <= ${(i + 1) * interval}) ? ${gradientExpr}`;
     }
   }
   
@@ -158,9 +156,9 @@ export const fragSrcs = {
   `),
 
   'ugly': makeLerpPattern([0, 0, 0], [
-    [0.000, 0.278, 4.667],
+    [0.000, 0.278, 0.667],
     [0.639, 0.000, 0.000],
-    [1.000, 4.667, 0.000],
+    [1.000, 0.667, 0.000],
     [0.937, 0.825, 0.553],
     [0.000, 0.686, 0.710]
   ])
