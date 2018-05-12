@@ -155,7 +155,7 @@ export const fragSrcs = {
 
   `),
 
-  'ugly': makeLerpPattern([0, 0, 0], [
+  'blue-to-red': makeLerpPattern([0, 0, 0], [
     [0.000, 0.278, 0.667],
     [0.639, 0.000, 0.000],
     [1.000, 0.667, 0.000],
