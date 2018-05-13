@@ -1,6 +1,8 @@
 
 import { Animatable, LinearAnimation, HarmonicAnimation } from '../lib/animation.js';
 
+// All the values related to the arrows are measured in units of the complex plane
+// Use scale() before the arrows are drawn to obtain a sensible output
 
 /**
  * Represents an arrow which can be drawn onto the canvas.
@@ -29,7 +31,7 @@ export default class Arrow extends Animatable {
   }
 
   /**
-   * Tthe angle between the arrow and the x-axis.
+   * The angle between the arrow and the x-axis.
    */
   public get angle(): number {
     return Math.atan2(this.head[1] - this.tail[1], this.head[0] - this.tail[0]);
@@ -79,7 +81,7 @@ export default class Arrow extends Animatable {
   public show(): void {
 
     // Change this value to choose the size of the tips of the arrows
-    const tipHeight = 15;
+    const tipHeight = 0.05;
 
     this.updateAnimations();
 
@@ -91,7 +93,7 @@ export default class Arrow extends Animatable {
 
     strokeCap(SQUARE);
     stroke(showColor);
-    strokeWeight(3);
+    strokeWeight(0.01);
 
     line(this.tail[0], this.tail[1], this.head[0] - tipHeight * Math.cos(this.angle), this.head[1] - tipHeight * Math.sin(this.angle));
 
@@ -116,9 +118,9 @@ export default class Arrow extends Animatable {
     // Angle between the arrow and the x-axis
 
     // Change this value to choose the size of the arc which displays the angle
-    const angleRadius = 50;
+    const angleRadius = 0.2;
 
-    strokeWeight(2);
+    strokeWeight(0.005);
     stroke(255, 255, 255, this.drawnAngleAlpha);
     noFill();
 
