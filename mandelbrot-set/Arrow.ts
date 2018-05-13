@@ -29,10 +29,51 @@ export default class Arrow extends Animatable {
   }
 
   /**
-   * Returns the angle between the arrow and the x-axis.
+   * Tthe angle between the arrow and the x-axis.
    */
   public get angle(): number {
     return Math.atan2(this.head[1] - this.tail[1], this.head[0] - this.tail[0]);
+  }
+  public set angle(value: number) {
+    const l = this.length;
+
+    this.head = [
+      this.tail[0] + l * Math.cos(value),
+      this.tail[1] + l * Math.sin(value)
+    ];
+  }
+
+  /**
+   * The distance between the head and the tail of the arrow.
+   */
+  public get length(): number {
+    return Math.hypot(this.head[0] - this.tail[0], this.head[1] - this.tail[1]);
+  }
+
+  /**
+   * Plays an animation which smoothly changes the length of the arrow by moving its head
+   * without changing its tail or its direction.
+   * 
+   * @param newLength The length that the arrow will have at the end of the animation
+   */
+  public changeLength(newLength: number): Promise<void> {
+    const oldLength = this.length;
+
+    // Act directly on the components of the arrow, using a proportion
+    return this.animate(new HarmonicAnimation<Arrow, 'head'>('head', 1, [
+      this.tail[0] + newLength/oldLength * (this.head[0] - this.tail[0]),
+      this.tail[1] + newLength/oldLength * (this.head[1] - this.tail[1])
+    ]));
+  }
+
+  /**
+   * Plays an animation which smoothly changes the angle between the arrow and the x-axis
+   * while keeping its tail fixed.
+   * 
+   * @param newAngle The angle between the arrow and the x-axis at the end of the animation
+   */
+  public changeAngle(newAngle: number): Promise<void> {
+    return this.animate(new HarmonicAnimation<Arrow, 'angle'>('angle', 2, newAngle));
   }
 
   public show(): void {
