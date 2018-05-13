@@ -1,5 +1,5 @@
 
-import { Animatable, LinearAnimation } from '../lib/animation.js';
+import { Animatable, LinearAnimation, HarmonicAnimation } from '../lib/animation.js';
 
 
 /**
@@ -14,11 +14,11 @@ export default class Arrow extends Animatable {
 
 
   /**
-   * @param color The color of the arrow
+   * @param color The color of the arrow, in the form [R, G, B]
    * @param head The end point of the arrow
    * @param tail The starting point of the arrow, [0, 0] by default
    */
-  public constructor(public color: [number, number, number], public head: [number, number], public tail: [number, number] = [0, 0]) {
+  public constructor(public color: number[], public head: number[], public tail: number[] = [0, 0]) {
     super();
 
     Arrow.instances.push(this);
@@ -79,6 +79,61 @@ export default class Arrow extends Animatable {
    */
   public fadeOut(): Promise<void> {
     return this.animate(new LinearAnimation<Arrow, 'alpha'>('alpha', 2, 0));
+  }
+
+  /**
+   * Plays an animation where two arrows are 'added' as vectors,
+   * at the end the current arrow will equal the result of the sum;
+   * The two arrows which are 'added' must have the same tail.
+   * 
+   * @param arrow The arrow to 'add' to the current one
+   * @param resultColor The color that the arrow will have after the addition
+   */
+  public async add(arrow: Arrow, resultColor = this.color): Promise<void> {
+    const addend1 = this.copy();
+    const addend2 = arrow.copy();
+
+    // Since the current arrow should take the value of the sum at then end, use it to represent the sum during the animation
+    
+    this.alpha = 0;
+    this.color = resultColor;
+
+    await addend2.moveTo(addend1.head);
+    this.head = addend2.head;
+    this.tail = addend1.tail;
+
+    addend1.fadeOut();
+    addend2.fadeOut();
+    await this.fadeIn();
+
+    addend1.delete();
+    addend2.delete();
+  }
+
+  /**
+   * Moves the arrow to a new position, whithout changing its length or its direction.
+   * 
+   * @param targetTail The point where the tail of the arrow will sit at the end of the animation
+   */
+  public moveTo(targetTail: number[]): Promise<void> {
+    const targetHead = [
+      this.head[0] + (targetTail[0] - this.tail[0]),
+      this.head[1] + (targetTail[1] - this.tail[1])
+    ];
+
+    return this.animate(new HarmonicAnimation<Arrow, 'tail'>('tail', 2, targetTail)
+              .parallel(new HarmonicAnimation<Arrow, 'head'>('head', 2, targetHead)));
+  }
+
+  /**
+   * Creates a copy of the arrow;
+   * the animations will only continue to play on the original arrow.
+   */
+  public copy(): Arrow {
+    const copy = new Arrow(this.color.slice(), this.head.slice(), this.tail.slice());
+    copy.alpha = this.alpha;
+
+    return copy;
   }
 
   /**
