@@ -11,6 +11,10 @@ export default class Arrow extends Animatable {
   
 
   public alpha = 255;
+  
+  // Properties used in angle animations
+  public drawnAnglePercent = 0;
+  public drawnAngleAlpha = 0;
 
 
   /**
@@ -32,6 +36,7 @@ export default class Arrow extends Animatable {
   }
 
   public show(): void {
+
     // Change this value to choose the size of the tips of the arrows
     const tipHeight = 15;
 
@@ -65,6 +70,24 @@ export default class Arrow extends Animatable {
     );
 
     translate(-this.head[0], -this.head[1]);
+
+
+    // Angle between the arrow and the x-axis
+
+    // Change this value to choose the size of the arc which displays the angle
+    const angleRadius = 50;
+
+    strokeWeight(2);
+    stroke(255, 255, 255, this.drawnAngleAlpha);
+    noFill();
+
+    if (this.angle >= 0) {
+      arc(this.tail[0], this.tail[1], angleRadius, angleRadius, 0, this.drawnAnglePercent * this.angle);
+    } else {
+      // Draw negative angles in clockwise direction
+      arc(this.tail[0], this.tail[1], angleRadius, angleRadius, this.drawnAnglePercent * this.angle, 0)
+    }
+
   }
 
   /**
@@ -123,6 +146,15 @@ export default class Arrow extends Animatable {
 
     return this.animate(new HarmonicAnimation<Arrow, 'tail'>('tail', 2, targetTail)
               .parallel(new HarmonicAnimation<Arrow, 'head'>('head', 2, targetHead)));
+  }
+
+  /**
+   * Displays on the screen an arc which represents the angle between the arrow and the x-axis.
+   */
+  public showAngle(): Promise<void> {
+    // Using a percentage instead of an absolute angle value makes the arc respond to later changes in the value of the angle
+    return this.animate(new HarmonicAnimation<Arrow, 'drawnAnglePercent'>('drawnAnglePercent', 1, 0, 1)
+              .parallel(new LinearAnimation<Arrow, 'drawnAngleAlpha'>('drawnAngleAlpha', 1, 0, 255)));
   }
 
   /**
