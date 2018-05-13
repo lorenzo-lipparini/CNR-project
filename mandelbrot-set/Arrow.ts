@@ -34,7 +34,13 @@ export default class Arrow extends Animatable {
    * The angle between the arrow and the x-axis.
    */
   public get angle(): number {
-    return Math.atan2(this.head[1] - this.tail[1], this.head[0] - this.tail[0]);
+    let angle = Math.atan2(this.head[1] - this.tail[1], this.head[0] - this.tail[0]);
+    
+    if (angle <= 0) {
+      angle += 2 * Math.PI;
+    }
+
+    return angle;
   }
   public set angle(value: number) {
     const l = this.length;
@@ -124,12 +130,7 @@ export default class Arrow extends Animatable {
     stroke(255, 255, 255, this.drawnAngleAlpha);
     noFill();
 
-    if (this.angle >= 0) {
-      arc(this.tail[0], this.tail[1], angleRadius, angleRadius, 0, this.drawnAnglePercent * this.angle);
-    } else {
-      // Draw negative angles in clockwise direction
-      arc(this.tail[0], this.tail[1], angleRadius, angleRadius, this.drawnAnglePercent * this.angle, 0)
-    }
+    arc(this.tail[0], this.tail[1], angleRadius, angleRadius, 0, this.drawnAnglePercent * this.angle);
 
   }
 
@@ -198,6 +199,13 @@ export default class Arrow extends Animatable {
     // Using a percentage instead of an absolute angle value makes the arc respond to later changes in the value of the angle
     return this.animate(new HarmonicAnimation<Arrow, 'drawnAnglePercent'>('drawnAnglePercent', 1, 0, 1)
               .parallel(new LinearAnimation<Arrow, 'drawnAngleAlpha'>('drawnAngleAlpha', 1, 0, 255)));
+  }
+
+  /**
+   * Fades out the representation of the angle.
+   */
+  public hideAngle(): Promise<void> {
+    return this.animate(new LinearAnimation<Arrow, 'drawnAngleAlpha'>('drawnAngleAlpha', 1, 255, 0));
   }
 
   /**
