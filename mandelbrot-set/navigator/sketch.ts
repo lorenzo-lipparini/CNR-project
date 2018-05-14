@@ -1,5 +1,5 @@
 
-import { MandelbrotRenderer } from '../Mandelbrot.js';
+import { MandelbrotRenderer } from '../mandelbrot.js';
 
 
 let mandelbrot: MandelbrotRenderer;

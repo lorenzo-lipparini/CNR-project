@@ -2,7 +2,7 @@ import videoSpecs from '../../lib/videoSpecs.js';
 import FrameCapture from '../../lib/FrameCapture.js';
 import { ExponentialAnimation, animate, updateAnimations } from '../../lib/animation.js';
 
-import { MandelbrotRenderer } from '../Mandelbrot.js';
+import { MandelbrotRenderer } from '../mandelbrot.js';
 
 
 let mandelbrot: MandelbrotRenderer;

@@ -2,7 +2,7 @@
 import videoSpecs from '../../lib/videoSpecs.js';
 import FrameCapture from '../../lib/FrameCapture.js';
 
-import { MandelbrotRenderer, MandelbrotNavigator } from '../Mandelbrot.js';
+import { MandelbrotRenderer, MandelbrotNavigator } from '../mandelbrot.js';
 
 
 let navigator: MandelbrotNavigator;
