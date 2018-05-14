@@ -3,6 +3,7 @@ import videoSpecs from '../../lib/videoSpecs.js';
 import FrameCapture from '../../lib/FrameCapture.js';
 import timer from '../../lib/timer.js';
 
+import Plane2D from '../Plane2D.js';
 import Arrow from '../Arrow.js';
 
 
@@ -46,10 +47,11 @@ window.draw = () => {
   timer.update();
 
   background(0);
-  noFill();
 
-  translate(width / 2, height / 2);
-  scale(height / 4.5, -height / 4.5);
+  Plane2D.setUnitLength(height / 5);
+  Plane2D.showAxes(true);
+  
+  noFill();
 
   stroke(255, 255, 255, 100);
   strokeWeight(0.005);
