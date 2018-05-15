@@ -15,8 +15,8 @@ export default class Arrow extends Animatable {
   public alpha = 255;
   
   // Properties used in angle animations
-  public drawnAnglePercent = 0;
-  public drawnAngleAlpha = 0;
+  public drawnAngleFraction = 0; // Fraction of the angle displayed on the screen (see showAngle())
+  public drawnAngleAlphaRatio = 0; // Ratio between the alpha of the angle and the alpha of the arrow
 
 
   /**
@@ -36,6 +36,7 @@ export default class Arrow extends Animatable {
   public get angle(): number {
     let angle = Math.atan2(this.head[1] - this.tail[1], this.head[0] - this.tail[0]);
     
+    // Always return a positive value
     if (angle <= 0) {
       angle += 2 * Math.PI;
     }
@@ -127,10 +128,11 @@ export default class Arrow extends Animatable {
     const angleRadius = 0.2;
 
     strokeWeight(0.005);
-    stroke(255, 255, 255, this.drawnAngleAlpha);
+    // Set the alpha of the angle, which is never bigger than that of the arrow
+    stroke(this.color[0], this.color[1], this.color[2], this.drawnAngleAlphaRatio * this.alpha);
     noFill();
 
-    arc(this.tail[0], this.tail[1], angleRadius, angleRadius, 0, this.drawnAnglePercent * this.angle);
+    arc(this.tail[0], this.tail[1], angleRadius, angleRadius, 0, this.drawnAngleFraction * this.angle);
 
   }
 
@@ -196,16 +198,18 @@ export default class Arrow extends Animatable {
    * Displays on the screen an arc which represents the angle between the arrow and the x-axis.
    */
   public showAngle(): Promise<void> {
+    this.drawnAngleAlphaRatio = 1; // Make sure that the angle will be shown
+
+    // Gradually draw the arc from the x-axis to the the arrow
     // Using a percentage instead of an absolute angle value makes the arc respond to later changes in the value of the angle
-    return this.animate(new HarmonicAnimation<Arrow, 'drawnAnglePercent'>('drawnAnglePercent', 1, 0, 1)
-              .parallel(new LinearAnimation<Arrow, 'drawnAngleAlpha'>('drawnAngleAlpha', 1, 0, 255)));
+    return this.animate(new HarmonicAnimation<Arrow, 'drawnAngleFraction'>('drawnAngleFraction', 1, 0, 1));
   }
 
   /**
    * Fades out the representation of the angle.
    */
   public hideAngle(): Promise<void> {
-    return this.animate(new LinearAnimation<Arrow, 'drawnAngleAlpha'>('drawnAngleAlpha', 1, 255, 0));
+    return this.animate(new LinearAnimation<Arrow, 'drawnAngleAlphaRatio'>('drawnAngleAlphaRatio', 1, 0));
   }
 
   /**
@@ -215,6 +219,8 @@ export default class Arrow extends Animatable {
   public copy(): Arrow {
     const copy = new Arrow(this.color.slice(), this.head.slice(), this.tail.slice());
     copy.alpha = this.alpha;
+    copy.drawnAngleFraction = this.drawnAngleFraction;
+    copy.drawnAngleAlphaRatio = this.drawnAngleAlphaRatio;
 
     return copy;
   }
@@ -228,7 +234,7 @@ export default class Arrow extends Animatable {
 
 
   /**
-   * Draws all the arrows ever created onto the canvas, these include the arrows generated for the animations.
+   * Draws all the arrows ever created onto the canvas, these include the arrows generated during animations.
    */
   static showAll(): void {
     for (const instance of Arrow.instances) {
