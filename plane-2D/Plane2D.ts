@@ -1,4 +1,6 @@
 
+import timer from '../lib/timer.js';
+
 import Line from './Line.js';
 
 
@@ -26,7 +28,7 @@ export default class Plane2D {
     const maxX = width/2 / this.unitLength;
     const maxY = height/2 / this.unitLength;
 
-    Line.defaultStyle = { rgb: [255, 255, 255], alpha: 100, strokeWeight: 0.01 };
+    Line.defaultStyle = { rgb: [255, 255, 255], alpha: 100, strokeWeight: 0.003 };
 
     // Foreach integer value n visible on the axes
     for (let n = 1; n <= max(maxX, maxY); n++) {
@@ -91,6 +93,27 @@ export default class Plane2D {
     for (const line of this.gridLines.horizontals.concat(this.gridLines.verticals)) {
       line.style.alpha = value;
     }
+  }
+
+  /**
+   * Plays an animation where the grid lines arise from the axes in couples.
+   */
+  public async makeGridAppear(): Promise<void> {
+    async function makeLinesAppear(lines: Line[]) {
+      for (let i = 0; i < lines.length; i += 2) {
+        lines[i].style.alpha = Line.defaultStyle.alpha;
+        lines[i].stretchFromMiddle(0.5);
+         
+        lines[i + 1].style.alpha = Line.defaultStyle.alpha;
+        lines[i + 1].stretchFromMiddle(0.5);
+         
+        await timer(0.3);
+      }
+    }
+
+    makeLinesAppear(this.gridLines.horizontals);
+    await timer(0.8);
+    makeLinesAppear(this.gridLines.verticals);
   }
 
 }

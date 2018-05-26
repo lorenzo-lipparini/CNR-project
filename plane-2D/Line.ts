@@ -41,10 +41,26 @@ export default class Line extends Animatable {
    * Draws the line on the screen.
    */
   public show(): void {
+    this.updateAnimations();
+
     strokeWeight(this.style.strokeWeight);
     stroke(this.style.rgb[0], this.style.rgb[1], this.style.rgb[2], this.style.alpha);
 
     line(this.start[0], this.start[1], this.end[0], this.end[1]);
+  }
+
+  /**
+   * Plays an animation where the line starts all collapsed into a single point in the center,
+   * and then the two extreme points of the line separate until they get to the right position. 
+   */
+  public stretchFromMiddle(duration: number): Promise<void> {
+    const center: [number, number] = [
+      (this.start[0] + this.end[0]) / 2,
+      (this.start[1] + this.end[1]) / 2,
+    ];
+
+    return this.animate(new HarmonicAnimation<Line, 'start'>('start', duration, center, this.start)
+              .parallel(new HarmonicAnimation<Line, 'end'>('end', duration, center, this.end)));
   }
 
 }
