@@ -54,17 +54,15 @@ namespace Plane2D {
     for (let n = 1; n <= max(maxX, maxY); n++) {
       gridLines.horizontals.push(new Line(-maxX, n, maxX, n));
       gridLines.horizontals.push(new Line(-maxX, -n, maxX, -n));
-      gridLines.horizontals.push(new Line(n, -maxY, n, maxY));
-      gridLines.horizontals.push(new Line(-n, -maxY, -n, maxY));
+      gridLines.verticals.push(new Line(n, -maxY, n, maxY));
+      gridLines.verticals.push(new Line(-n, -maxY, -n, maxY));
     }
   }
 
   /**
    * Draws the x and y axes on the canvas.
-   * 
-   * @param showGrid If set to true, an orthogonal grid which cuts the axes at all integer values is also drawn
    */
-  export function showAxes(showGrid = false): void {
+  export function showAxes(): void {
 
     strokeWeight(0.01);
     stroke(255, 255, 255, 100);
@@ -91,12 +89,21 @@ namespace Plane2D {
       line(-n, -tickLength/2, -n, tickLength/2);
     }
 
-    if (showGrid) {
-      for (const line of gridLines.horizontals.concat(gridLines.verticals)) {
-        line.show();
-      }
+    for (const line of gridLines.horizontals.concat(gridLines.verticals)) {
+      line.show();
     }
 
+  }
+
+  /**
+   * Sets the alpha value of all the lines which are part of the grid.
+   * 
+   * @param value Alpha value to set
+   */
+  export function setGridAlpha(value: number): void {
+    for (const line of gridLines.horizontals.concat(gridLines.verticals)) {
+      line.style.alpha = value;
+    }
   }
 
 }
