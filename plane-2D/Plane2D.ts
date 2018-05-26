@@ -3,73 +3,60 @@ import Line from './Line.js';
 
 
 /**
- * Namespace containing functions that take care of the transformation of coordinates
- * from the 2D plane to the displayed canvas, as well as the visual representation of the plane itself. 
+ * Class that takes care of the transformation of coordinates from the 2D plane to the displayed canvas,
+ * as well as the visual representation of the plane itself. 
  */
-namespace Plane2D {
+export default class Plane2D {
 
-  let unitLength = 0;
-
-  let gridLines: {
+  private gridLines: {
     horizontals: Line[],
     verticals: Line[]
+  } = {
+    horizontals: [],
+    verticals: []
   };
 
   /**
-   * Used to correctly map points on the plane to points on the canvas;
-   * To be called in draw() after setting the background.
-   * 
-   * @param value Distance in pixels between two points which are 1 unit apart on the plane
+   * @param unitLength Distance in pixels between two points which are 1 unit apart on the plane
    */
-  export function setUnitLength(value: number): void {
-    const needToUpdateGridLines = value !== unitLength;
-    
-    translate(width/2, height/2);
-    scale(value, -value);
-
-    unitLength = value;
-
-    if (needToUpdateGridLines) {
-      updateGridLines();
-    }
-  }
-
-  /**
-   * Creates new Line objects that make the grid.
-   */
-  function updateGridLines(): void {
-    // Get rid of the previous lines
-    gridLines = {
-      horizontals: [],
-      verticals: []
-    };
+  public constructor(private unitLength: number) {
+    // Create the lines which compose the grid
 
     // Maximum coordinates which fit on the screen
-    const maxX = width/2 / unitLength;
-    const maxY = height/2 / unitLength;
+    const maxX = width/2 / this.unitLength;
+    const maxY = height/2 / this.unitLength;
 
     Line.defaultStyle = { rgb: [255, 255, 255], alpha: 100, strokeWeight: 0.01 };
 
     // Foreach integer value n visible on the axes
     for (let n = 1; n <= max(maxX, maxY); n++) {
-      gridLines.horizontals.push(new Line(-maxX, n, maxX, n));
-      gridLines.horizontals.push(new Line(-maxX, -n, maxX, -n));
-      gridLines.verticals.push(new Line(n, -maxY, n, maxY));
-      gridLines.verticals.push(new Line(-n, -maxY, -n, maxY));
+      this.gridLines.horizontals.push(new Line(-maxX, n, maxX, n));
+      this.gridLines.horizontals.push(new Line(-maxX, -n, maxX, -n));
+      this.gridLines.verticals.push(new Line(n, -maxY, n, maxY));
+      this.gridLines.verticals.push(new Line(-n, -maxY, -n, maxY));
     }
+  }
+
+  /**
+   * Required to correctly map points on the plane to points on the canvas, according to the unit length;
+   * To be called in draw() after setting the background.
+   */
+  public applyScale(): void {
+    translate(width/2, height/2);
+    scale(this.unitLength, -this.unitLength);
   }
 
   /**
    * Draws the x and y axes on the canvas.
    */
-  export function showAxes(): void {
+  public showAxes(): void {
 
     strokeWeight(0.01);
     stroke(255, 255, 255, 100);
 
     // Maximum coordinates which fit on the screen
-    const maxX = width/2 / unitLength;
-    const maxY = height/2 / unitLength;
+    const maxX = width/2 / this.unitLength;
+    const maxY = height/2 / this.unitLength;
 
     // X-axis
     line(-maxX, 0, maxX, 0);
@@ -89,7 +76,7 @@ namespace Plane2D {
       line(-n, -tickLength/2, -n, tickLength/2);
     }
 
-    for (const line of gridLines.horizontals.concat(gridLines.verticals)) {
+    for (const line of this.gridLines.horizontals.concat(this.gridLines.verticals)) {
       line.show();
     }
 
@@ -100,13 +87,10 @@ namespace Plane2D {
    * 
    * @param value Alpha value to set
    */
-  export function setGridAlpha(value: number): void {
-    for (const line of gridLines.horizontals.concat(gridLines.verticals)) {
+  public setGridAlpha(value: number): void {
+    for (const line of this.gridLines.horizontals.concat(this.gridLines.verticals)) {
       line.style.alpha = value;
     }
   }
 
 }
-
-
-export default Plane2D;

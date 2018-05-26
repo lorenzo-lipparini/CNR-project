@@ -7,12 +7,16 @@ import Plane2D from '../Plane2D.js';
 import Arrow from '../Arrow.js';
 
 
+let plane: Plane2D;
+
 const c = new Arrow([255, 255, 0], [0.4, 0.5]);
 const z = c.copy();
 z.color = [255, 255, 255];
 
 window.setup = async () => {
   createCanvas(videoSpecs.resolution.x, videoSpecs.resolution.y);
+
+  plane = new Plane2D(height / 5);
 
   ellipseMode(RADIUS);
 
@@ -47,18 +51,18 @@ window.draw = () => {
   timer.update();
 
   background(0);
+  plane.applyScale();
 
-  Plane2D.setUnitLength(height / 5);
-  Plane2D.showAxes(true);
+  plane.showAxes();
   
   noFill();
 
   stroke(255, 255, 255, 100);
-  strokeWeight(0.005);
+  strokeWeight(0.02);
 
   ellipse(0, 0, 1);
 
-  strokeWeight((z.length <= 2) ? 0.005 : 0.02);
+  strokeWeight(0.03);
   stroke(255, 0, 0, (z.length <= 2) ? 100 : 255);
 
   ellipse(0, 0, 2);
