@@ -16,7 +16,12 @@ export default class Line extends Animatable {
   public start: [number, number];
   public end: [number, number];
 
-  public style = Line.defaultStyle;
+  // Manual deep copy
+  public style = {
+    rgb: [Line.defaultStyle.rgb[0], Line.defaultStyle.rgb[1], Line.defaultStyle.rgb[2]],
+    alpha: Line.defaultStyle.alpha,
+    strokeWeight: Line.defaultStyle.strokeWeight
+  };
   
 
   /**
