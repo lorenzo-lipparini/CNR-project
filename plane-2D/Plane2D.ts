@@ -20,23 +20,41 @@ export default class Plane2D {
 
   /**
    * @param unitLength Distance in pixels between two points which are 1 unit apart on the plane
+   * @param origin The point on the canvas where the two axes intercept
    */
-  public constructor(private unitLength: number) {
+  public constructor(private unitLength: number, private origin = [width / 2, height / 2]) {
     // Create the lines which compose the grid
 
-    // Maximum coordinates which fit on the screen
-    const maxX = width/2 / this.unitLength;
-    const maxY = height/2 / this.unitLength;
+    const { minX, maxX, minY, maxY } = this.minMaxValues;
+
+    // The maximum distance of any point on the axes from the origin
+    const maxValue = Math.max(...
+      [minX, maxX].map(x => Math.abs(x - this.origin[0])).concat(
+      [minY, maxY].map(y => Math.abs(y - this.origin[1])))
+    );
+
 
     Line.defaultStyle = { rgb: [255, 255, 255], alpha: 100, strokeWeight: 0.003 };
 
-    // Foreach integer value n visible on the axes
-    for (let n = 1; n <= max(maxX, maxY); n++) {
-      this.gridLines.horizontals.push(new Line(-maxX, n, maxX, n));
-      this.gridLines.horizontals.push(new Line(-maxX, -n, maxX, -n));
-      this.gridLines.verticals.push(new Line(n, -maxY, n, maxY));
-      this.gridLines.verticals.push(new Line(-n, -maxY, -n, maxY));
+    // Create the grid lines in pairs to make them easier to animate
+    for (let n = 1; n <= maxValue; n++) {
+      this.gridLines.horizontals.push(new Line(minX, n, maxX, n));
+      this.gridLines.horizontals.push(new Line(minX, -n, maxX, -n));
+      this.gridLines.verticals.push(new Line(n, minY, n, maxY));
+      this.gridLines.verticals.push(new Line(-n, minY, -n, maxY));
     }
+  }
+
+  /**
+   * Returns an object containing the maximum and minimum coordinates which fit on the screen.
+   */
+  private get minMaxValues() {
+    return {
+      minX: -this.origin[0]           / this.unitLength,
+      maxX: (width - this.origin[0])  / this.unitLength,
+      minY: (this.origin[1] - height) / this.unitLength,
+      maxY: this.origin[1]            / this.unitLength,
+    };
   }
 
   /**
@@ -44,7 +62,7 @@ export default class Plane2D {
    * To be called in draw() after setting the background.
    */
   public applyScale(): void {
-    translate(width/2, height/2);
+    translate(this.origin[0], this.origin[1]);
     scale(this.unitLength, -this.unitLength);
   }
 
@@ -56,26 +74,26 @@ export default class Plane2D {
     strokeWeight(0.01);
     stroke(255, 255, 255, 100);
 
-    // Maximum coordinates which fit on the screen
-    const maxX = width/2 / this.unitLength;
-    const maxY = height/2 / this.unitLength;
+    const { minX, maxX, minY, maxY } = this.minMaxValues;
 
     // X-axis
-    line(-maxX, 0, maxX, 0);
+    line(minX, 0, maxX, 0);
     // Y-axis
-    line(0, -maxY, 0, maxY);
+    line(0, minY, 0, maxY);
+    
 
-    // Foreach integer value n visible on the axes
-    for (let n = 1; n <= max(maxX, maxY); n++) {
-      const tickLength = 0.1;
+    const tickLength = 0.1;
       
-      strokeWeight(0.01);
-      stroke(255, 255, 255);
-      
-      line(-tickLength/2, n, tickLength/2, n);
-      line(-tickLength/2, -n, tickLength/2, -n);
+    strokeWeight(0.01);
+    stroke(255, 255, 255);
+
+    // Foreach integer value n visible on the x-axis
+    for (let n = Math.ceil(minX); n <= Math.floor(maxX); n++) {
       line(n, -tickLength/2, n, tickLength/2);
-      line(-n, -tickLength/2, -n, tickLength/2);
+    }
+    // Foreach integer value n visible on the y-axis
+    for (let n = Math.ceil(minY); n <= Math.floor(maxY); n++) {
+      line(-tickLength/2, n, tickLength/2, n);
     }
 
     for (const line of this.gridLines.horizontals.concat(this.gridLines.verticals)) {
