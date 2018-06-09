@@ -48,7 +48,7 @@ export default class Plane2D {
   /**
    * Returns an object containing the maximum and minimum coordinates which fit on the screen.
    */
-  private get minMaxValues() {
+  public get minMaxValues() {
     return {
       minX: -this.origin[0]           / this.unitLength,
       maxX: (width - this.origin[0])  / this.unitLength,
@@ -89,11 +89,15 @@ export default class Plane2D {
 
     // Foreach integer value n visible on the x-axis
     for (let n = Math.ceil(minX); n <= Math.floor(maxX); n++) {
-      line(n, -tickLength/2, n, tickLength/2);
+      if (n !== 0) {
+        line(n, -tickLength/2, n, tickLength/2);
+      }
     }
     // Foreach integer value n visible on the y-axis
     for (let n = Math.ceil(minY); n <= Math.floor(maxY); n++) {
-      line(-tickLength/2, n, tickLength/2, n);
+      if (n !== 0) {
+        line(-tickLength/2, n, tickLength/2, n);
+      }
     }
 
     for (const line of this.gridLines.horizontals.concat(this.gridLines.verticals)) {
