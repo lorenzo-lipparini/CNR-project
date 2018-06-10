@@ -10,21 +10,22 @@ import Plane2D from './Plane2D.js';
 export default class Graph extends Animatable {
 
   public interval: [number, number];
+  private step: number;
 
 
   /**
    * @param f The function to plot
    * @param interval Array containing the two endpoints of the interval to show
-   * @param step Detemines the precision of the curve
+   * @param step Determines the precision of the graph
    */
   public constructor(f: (x: number) => number, interval: [number, number], step?: number);
   /**
    * @param f The function to plot
    * @param plane The plane where the graph will be draw, the graph will cover the visible portion of the x-axis
-   * @param step Detemines the precision of the curve
+   * @param step Determines the precision of the graph
    */
   public constructor(f: (x: number) => number, plane: Plane2D, step?: number);
-  public constructor(private f: (x: number) => number, intervalOrPlane: [number, number] | Plane2D, private step = 0.05) {
+  public constructor(private f: (x: number) => number, intervalOrPlane: [number, number] | Plane2D, step?: number) {
     super();
 
     if (intervalOrPlane instanceof Plane2D) {
@@ -33,6 +34,9 @@ export default class Graph extends Animatable {
     } else {
       this.interval = intervalOrPlane;
     }
+
+    // Choose a small step compared to the interval
+    this.step = step || (this.interval[1] - this.interval[0]) / 1000;
   }
 
   /**
@@ -49,6 +53,10 @@ export default class Graph extends Animatable {
     return this.animate(new HarmonicAnimation<Graph, 'interval'>('interval', 2, initialInterval, this.interval));
   }
 
+  /**
+   * Draws the graph of the function on the plane,
+   * discontinuities of the graph generate vertical lines.
+   */
   public show(): void {
     this.updateAnimations();
 
