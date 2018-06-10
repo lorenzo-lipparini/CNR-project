@@ -4,17 +4,19 @@ import timer from '../lib/timer.js';
 import Line, { LineStyle } from './Line.js';
 
 
-const gridLineStyle: LineStyle = {
-  rgb: [255, 255, 255],
-  alpha: 100,
-  strokeWeight: 0.003
-};
-
 /**
  * Class that takes care of the transformation of coordinates from the 2D plane to the displayed canvas,
  * as well as the visual representation of the plane itself. 
  */
 export default class Plane2D {
+
+  /**
+   * Gives a unit of length on the plane which always corresponds to one pixel on the screen;
+   * This may be used for any kind of measure which shouldn't depend on the zoom level (such as stroke weight).
+   */
+  public readonly pixelLength: number;
+
+  private readonly gridLineStyle: LineStyle;
 
   private gridLines: {
     horizontals: Line[],
@@ -29,6 +31,14 @@ export default class Plane2D {
    * @param origin The point on the canvas where the two axes intercept
    */
   public constructor(private unitLength: number, private origin = [width / 2, height / 2]) {
+    this.pixelLength = 1 / this.unitLength;
+
+    this.gridLineStyle = {
+      rgb: [255, 255, 255],
+      alpha: 25,
+      strokeWeight: 2 * this.pixelLength
+    };
+    
     // Create the lines which compose the grid
 
     const { minX, maxX, minY, maxY } = this.minMaxValues;
@@ -38,10 +48,10 @@ export default class Plane2D {
 
     // Create the grid lines in pairs to make them easier to animate
     for (let n = 1; n <= maxValue; n++) {
-      this.gridLines.horizontals.push(new Line(minX, n, maxX, n, gridLineStyle));
-      this.gridLines.horizontals.push(new Line(minX, -n, maxX, -n, gridLineStyle));
-      this.gridLines.verticals.push(new Line(n, minY, n, maxY, gridLineStyle));
-      this.gridLines.verticals.push(new Line(-n, minY, -n, maxY, gridLineStyle));
+      this.gridLines.horizontals.push(new Line(minX, n, maxX, n, this.gridLineStyle));
+      this.gridLines.horizontals.push(new Line(minX, -n, maxX, -n, this.gridLineStyle));
+      this.gridLines.verticals.push(new Line(n, minY, n, maxY, this.gridLineStyle));
+      this.gridLines.verticals.push(new Line(-n, minY, -n, maxY, this.gridLineStyle));
     }
   }
 
@@ -71,7 +81,7 @@ export default class Plane2D {
    */
   public showAxes(): void {
 
-    strokeWeight(0.01);
+    strokeWeight(2 * this.pixelLength);
     stroke(255, 255, 255, 100);
 
     const { minX, maxX, minY, maxY } = this.minMaxValues;
@@ -82,10 +92,7 @@ export default class Plane2D {
     line(0, minY, 0, maxY);
     
 
-    const tickLength = 0.1;
-      
-    strokeWeight(0.01);
-    stroke(255, 255, 255);
+    const tickLength = 10 * this.pixelLength;
 
     // Foreach integer value n visible on the x-axis
     for (let n = Math.ceil(minX); n <= Math.floor(maxX); n++) {
@@ -122,17 +129,17 @@ export default class Plane2D {
    */
   public async makeGridAppear(): Promise<void> {
     
-    async function makeLinesAppear(lines: Line[]) {
+    const makeLinesAppear = async (lines: Line[]) => {
       for (let i = 0; i < lines.length; i += 2) {
-        lines[i].style.alpha = gridLineStyle.alpha;
+        lines[i].style.alpha = this.gridLineStyle.alpha;
         lines[i].stretchFromMiddle(0.5);
 
-        lines[i + 1].style.alpha = gridLineStyle.alpha;
+        lines[i + 1].style.alpha = this.gridLineStyle.alpha;
         lines[i + 1].stretchFromMiddle(0.5);
 
         await timer(0.3);
       }
-    }
+    };
 
     makeLinesAppear(this.gridLines.horizontals);
     await timer(0.8);
