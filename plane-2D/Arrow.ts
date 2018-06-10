@@ -1,6 +1,9 @@
 
 import { Animatable, LinearAnimation, HarmonicAnimation } from '../lib/animation.js';
 
+import Plane2D from './Plane2D.js';
+
+
 // All the values related to the arrows are measured in units of the complex plane
 // Use scale() before the arrows are drawn to obtain a sensible output
 
@@ -24,7 +27,7 @@ export default class Arrow extends Animatable {
    * @param head The end point of the arrow
    * @param tail The starting point of the arrow, [0, 0] by default
    */
-  public constructor(public color: number[], public head: number[], public tail: number[] = [0, 0]) {
+  public constructor(private plane: Plane2D, public color: number[], public head: number[], public tail: number[] = [0, 0]) {
     super();
 
     Arrow.instances.push(this);
@@ -88,7 +91,7 @@ export default class Arrow extends Animatable {
   public show(): void {
 
     // Change this value to choose the size of the tips of the arrows
-    const tipHeight = 0.05;
+    const tipHeight = 10 * this.plane.pixelLength;
 
     this.updateAnimations();
 
@@ -100,7 +103,7 @@ export default class Arrow extends Animatable {
 
     strokeCap(SQUARE);
     stroke(showColor);
-    strokeWeight(0.01);
+    strokeWeight(2 * this.plane.pixelLength);
 
     line(this.tail[0], this.tail[1], this.head[0] - tipHeight * Math.cos(this.angle), this.head[1] - tipHeight * Math.sin(this.angle));
 
@@ -127,7 +130,7 @@ export default class Arrow extends Animatable {
     // Change this value to choose the size of the arc which displays the angle
     const angleRadius = 0.2;
 
-    strokeWeight(0.005);
+    strokeWeight(1 * this.plane.pixelLength);
     // Set the alpha of the angle, which is never bigger than that of the arrow
     stroke(this.color[0], this.color[1], this.color[2], this.drawnAngleAlphaRatio * this.alpha);
     noFill();
@@ -217,7 +220,7 @@ export default class Arrow extends Animatable {
    * the animations will only continue to play on the original arrow.
    */
   public copy(): Arrow {
-    const copy = new Arrow(this.color.slice(), this.head.slice(), this.tail.slice());
+    const copy = new Arrow(this.plane, this.color.slice(), this.head.slice(), this.tail.slice());
     copy.alpha = this.alpha;
     copy.drawnAngleFraction = this.drawnAngleFraction;
     copy.drawnAngleAlphaRatio = this.drawnAngleAlphaRatio;
