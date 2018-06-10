@@ -2,26 +2,21 @@
 import { Animatable, HarmonicAnimation } from '../lib/animation.js';
 
 
+export type LineStyle = {
+  rgb: [number, number, number];
+  alpha: number;
+  strokeWeight: number;
+};
+
 /**
  * Represents a line with the given end points and some style.
  */
 export default class Line extends Animatable {
 
-  public static defaultStyle = {
-    rgb: [0, 0, 0],
-    alpha: 255,
-    strokeWeight: 2
-  };
-
   public start: [number, number];
   public end: [number, number];
 
-  // Manual deep copy
-  public style = {
-    rgb: [Line.defaultStyle.rgb[0], Line.defaultStyle.rgb[1], Line.defaultStyle.rgb[2]],
-    alpha: Line.defaultStyle.alpha,
-    strokeWeight: Line.defaultStyle.strokeWeight
-  };
+  public style: LineStyle;
   
 
   /**
@@ -30,11 +25,18 @@ export default class Line extends Animatable {
    * @param endX X-coordinate of the endpoint of the line 
    * @param endY Y-coordinate of the endpoint of the line 
    */
-  public constructor(startX: number, startY: number, endX: number, endY: number) {
+  public constructor(startX: number, startY: number, endX: number, endY: number, style: LineStyle) {
     super();
     
     this.start = [startX, startY];
     this.end = [endX, endY];
+
+    // Manual deep copy
+    this.style = {
+      rgb: [style.rgb[0], style.rgb[1], style.rgb[2]],
+      alpha: style.alpha,
+      strokeWeight: style.strokeWeight
+    };
   }
 
   /**

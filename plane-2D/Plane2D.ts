@@ -1,8 +1,14 @@
 
 import timer from '../lib/timer.js';
 
-import Line from './Line.js';
+import Line, { LineStyle } from './Line.js';
 
+
+const gridLineStyle: LineStyle = {
+  rgb: [255, 255, 255],
+  alpha: 100,
+  strokeWeight: 0.003
+};
 
 /**
  * Class that takes care of the transformation of coordinates from the 2D plane to the displayed canvas,
@@ -30,14 +36,12 @@ export default class Plane2D {
     // The maximum distance of any point on the axes from the origin
     const maxValue = Math.max(Math.abs(minX), Math.abs(maxX), Math.abs(minY), Math.abs(maxY));
 
-    Line.defaultStyle = { rgb: [255, 255, 255], alpha: 100, strokeWeight: 0.003 };
-
     // Create the grid lines in pairs to make them easier to animate
     for (let n = 1; n <= maxValue; n++) {
-      this.gridLines.horizontals.push(new Line(minX, n, maxX, n));
-      this.gridLines.horizontals.push(new Line(minX, -n, maxX, -n));
-      this.gridLines.verticals.push(new Line(n, minY, n, maxY));
-      this.gridLines.verticals.push(new Line(-n, minY, -n, maxY));
+      this.gridLines.horizontals.push(new Line(minX, n, maxX, n, gridLineStyle));
+      this.gridLines.horizontals.push(new Line(minX, -n, maxX, -n, gridLineStyle));
+      this.gridLines.verticals.push(new Line(n, minY, n, maxY, gridLineStyle));
+      this.gridLines.verticals.push(new Line(-n, minY, -n, maxY, gridLineStyle));
     }
   }
 
@@ -120,10 +124,10 @@ export default class Plane2D {
     
     async function makeLinesAppear(lines: Line[]) {
       for (let i = 0; i < lines.length; i += 2) {
-        lines[i].style.alpha = Line.defaultStyle.alpha;
+        lines[i].style.alpha = gridLineStyle.alpha;
         lines[i].stretchFromMiddle(0.5);
 
-        lines[i + 1].style.alpha = Line.defaultStyle.alpha;
+        lines[i + 1].style.alpha = gridLineStyle.alpha;
         lines[i + 1].stretchFromMiddle(0.5);
 
         await timer(0.3);
