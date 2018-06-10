@@ -28,11 +28,7 @@ export default class Plane2D {
     const { minX, maxX, minY, maxY } = this.minMaxValues;
 
     // The maximum distance of any point on the axes from the origin
-    const maxValue = Math.max(...
-      [minX, maxX].map(x => Math.abs(x - this.origin[0])).concat(
-      [minY, maxY].map(y => Math.abs(y - this.origin[1])))
-    );
-
+    const maxValue = Math.max(Math.abs(minX), Math.abs(maxX), Math.abs(minY), Math.abs(maxY));
 
     Line.defaultStyle = { rgb: [255, 255, 255], alpha: 100, strokeWeight: 0.003 };
 
@@ -121,21 +117,22 @@ export default class Plane2D {
    * Plays an animation where the grid lines arise from the axes in couples.
    */
   public async makeGridAppear(): Promise<void> {
+    
     async function makeLinesAppear(lines: Line[]) {
       for (let i = 0; i < lines.length; i += 2) {
         lines[i].style.alpha = Line.defaultStyle.alpha;
         lines[i].stretchFromMiddle(0.5);
-         
+
         lines[i + 1].style.alpha = Line.defaultStyle.alpha;
         lines[i + 1].stretchFromMiddle(0.5);
-         
+
         await timer(0.3);
       }
     }
 
     makeLinesAppear(this.gridLines.horizontals);
     await timer(0.8);
-    makeLinesAppear(this.gridLines.verticals);
+    await makeLinesAppear(this.gridLines.verticals);
   }
 
 }
