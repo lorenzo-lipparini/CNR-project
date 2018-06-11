@@ -10,33 +10,17 @@ import Plane2D from './Plane2D.js';
 export default class Graph extends Animatable {
 
   public interval: [number, number];
-  private step: number;
 
 
   /**
+   * @param plane The plane where the graph will be draw, the graph will cover the visible portion of the x-axis by default
    * @param f The function to plot
-   * @param interval Array containing the two endpoints of the interval to show
-   * @param step Determines the precision of the graph
    */
-  public constructor(f: (x: number) => number, interval: [number, number], step?: number);
-  /**
-   * @param f The function to plot
-   * @param plane The plane where the graph will be draw, the graph will cover the visible portion of the x-axis
-   * @param step Determines the precision of the graph
-   */
-  public constructor(f: (x: number) => number, plane: Plane2D, step?: number);
-  public constructor(private f: (x: number) => number, intervalOrPlane: [number, number] | Plane2D, step?: number) {
+  public constructor(public readonly plane: Plane2D, public f: (x: number) => number) {
     super();
 
-    if (intervalOrPlane instanceof Plane2D) {
-      const { minX, maxX } = intervalOrPlane.minMaxValues;
-      this.interval = [minX, maxX];
-    } else {
-      this.interval = intervalOrPlane;
-    }
-
-    // Choose a small step compared to the interval
-    this.step = step || (this.interval[1] - this.interval[0]) / 1000;
+    const { minX, maxX } = this.plane.minMaxValues;
+    this.interval = [minX, maxX];
   }
 
   /**
@@ -61,13 +45,17 @@ export default class Graph extends Animatable {
     this.updateAnimations();
 
     noFill();
-    strokeWeight(0.01);
+
+    strokeWeight(2 * this.plane.pixelLength);
     stroke(255, 255, 255);
 
+    const { minX, maxX } = this.plane.minMaxValues;
+    // Choose a small step compared to the visible interval
+    const step = (maxX - minX) / 1000;
 
     beginShape();
 
-    for (let x = this.interval[0]; x <= this.interval[1]; x += this.step) {
+    for (let x = this.interval[0]; x <= this.interval[1]; x += step) {
       vertex(x, this.f(x));
     }
     // Always include the endpoints, so that animations look smoother
@@ -75,6 +63,5 @@ export default class Graph extends Animatable {
 
     endShape();
   }
-
 
 }
