@@ -1,5 +1,6 @@
 
 import timer from '../lib/timer.js';
+import { Animatable, ExponentialAnimation } from '../lib/animation.js';
 
 import Line, { LineStyle } from './Line.js';
 
@@ -8,38 +9,64 @@ import Line, { LineStyle } from './Line.js';
  * Class that takes care of the transformation of coordinates from the 2D plane to the displayed canvas,
  * as well as the visual representation of the plane itself. 
  */
-export default class Plane2D {
+export default class Plane2D extends Animatable {
+
+  private _unitLength!: number;
 
   /**
    * Gives a unit of length on the plane which always corresponds to one pixel on the screen;
    * This may be used for any kind of measure which shouldn't depend on the zoom level (such as stroke weight).
    */
-  public readonly pixelLength: number;
+  public pixelLength!: number;
 
-  private readonly gridLineStyle: LineStyle;
+  private gridLineStyle!: LineStyle;
 
-  private gridLines: {
+  private gridLines!: {
     horizontals: Line[],
     verticals: Line[]
-  } = {
-    horizontals: [],
-    verticals: []
   };
 
   /**
    * @param unitLength Distance in pixels between two points which are 1 unit apart on the plane
    * @param origin The point on the canvas where the two axes intercept
    */
-  public constructor(private unitLength: number, private origin = [width / 2, height / 2]) {
+  public constructor(unitLength: number, private origin = [width / 2, height / 2]) {
+    super();
+
+    // The unitLength setter will give a value to all the instance fields
+    this.unitLength = unitLength;
+  }
+
+  get unitLength(): number {
+    return this._unitLength;
+  }
+  set unitLength(value: number) {
+    // Prevent useless computation
+    if (value === this._unitLength) {
+      return;
+    }
+
+    this._unitLength = value;
+
+    // Recalculate the pixelLength so that it always compensates the transformations of applyScale()
     this.pixelLength = 1 / this.unitLength;
 
+
+    // Since the pixelLength has changed, gridLineStyle needs to be updated
     this.gridLineStyle = {
       rgb: [255, 255, 255],
       alpha: 25,
       strokeWeight: 2 * this.pixelLength
     };
-    
-    // Create the lines which compose the grid
+
+
+    // Get rid of the previous lines
+    this.gridLines = {
+      horizontals: [],
+      verticals: []
+    };
+
+    // Create the new lines which compose the grid
 
     const { minX, maxX, minY, maxY } = this.minMaxValues;
 
@@ -53,6 +80,7 @@ export default class Plane2D {
       this.gridLines.verticals.push(new Line(n, minY, n, maxY, this.gridLineStyle));
       this.gridLines.verticals.push(new Line(-n, minY, -n, maxY, this.gridLineStyle));
     }
+
   }
 
   /**
@@ -80,6 +108,7 @@ export default class Plane2D {
    * Draws the x and y axes on the canvas.
    */
   public showAxes(): void {
+    this.updateAnimations();
 
     strokeWeight(2 * this.pixelLength);
     stroke(255, 255, 255, 100);
@@ -144,6 +173,16 @@ export default class Plane2D {
     makeLinesAppear(this.gridLines.horizontals);
     await timer(0.8);
     await makeLinesAppear(this.gridLines.verticals);
+  }
+
+  /**
+   * Plays an animation where the unitLength is smoothly changed by the given factor.
+   * 
+   * @param duration Duration in seconds of the animation
+   * @param factor Factor by which the unitLength is multiplied
+   */
+  public zoom(duration: number, factor: number): Promise<void> {
+    return this.animate(new ExponentialAnimation<Plane2D, 'unitLength'>('unitLength', duration, factor * this.unitLength).harmonize());
   }
 
 }
