@@ -93,17 +93,18 @@ export default class Line extends Animatable {
   }
 
   /**
-   * Plays an animation where the line starts all collapsed into a single point in the center,
-   * and then the two extreme points of the line separate until they get to the right position. 
+   * Plays an animation where the line is gradually drawn on the plane.
+   * 
+   * @param origin Point where the line starts to be drawn
    */
-  public stretchFromMiddle(duration: number): Promise<void> {
-    const center: [number, number] = [
-      (this.start[0] + this.end[0]) / 2,
-      (this.start[1] + this.end[1]) / 2,
-    ];
+  public drawFrom(origin: 'start' | 'end' | 'center', duration: number): Promise<void> {
+    const originPoint: [number, number] = 
+    (origin === 'start') ? this.start :
+    (origin === 'end')   ? this.end :
+    [(this.start[0] + this.start[1]) / 2, (this.end[0] + this.end[1]) / 2];
 
-    return this.animate(new HarmonicAnimation<Line, 'start'>('start', duration, center, this.start)
-              .parallel(new HarmonicAnimation<Line, 'end'>('end', duration, center, this.end)));
+    return this.animate(new HarmonicAnimation<Line, 'start'>('start', duration, originPoint, this.start)
+              .parallel(new HarmonicAnimation<Line, 'end'>('end', duration, originPoint, this.end)));
   }
 
 }

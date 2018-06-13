@@ -162,10 +162,10 @@ export default class Plane2D extends Animatable {
     const makeLinesAppear = async (lines: Line[]) => {
       for (let i = 0; i < lines.length; i += 2) {
         lines[i].style.alpha = this.gridLineStyle.alpha;
-        lines[i].stretchFromMiddle(0.5);
+        lines[i].drawFrom('center', 0.5);
 
         lines[i + 1].style.alpha = this.gridLineStyle.alpha;
-        lines[i + 1].stretchFromMiddle(0.5);
+        lines[i + 1].drawFrom('center', 0.5);
 
         await timer(0.3);
       }
