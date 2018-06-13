@@ -11,7 +11,7 @@ import Line, { LineStyle } from './Line.js';
  */
 class HighlightedPoint extends Animatable {
 
-  public alpha: number = 1;
+  public alpha: number = 255;
 
   public horizontalLine: Line;
   public verticalLine: Line;
@@ -45,6 +45,26 @@ class HighlightedPoint extends Animatable {
     noStroke();
     fill(255, 255, 255, this.alpha);
     ellipse(this.x, this.y, 5 * this.plane.pixelLength);
+  }
+
+  /**
+   * Plays an animation where the point fades in while the additional lines are drawn from the axes to the point.
+   */
+  public appear(): Promise<void> {
+    this.horizontalLine.drawFrom('start', 0.5);
+    this.verticalLine.drawFrom('start', 0.5);
+
+    return this.animate(new LinearAnimation<HighlightedPoint, 'alpha'>('alpha', 0.5, 0, 255));
+  }
+
+  /**
+   * Plays an animation where both the point and the additional lines gradually fade out.
+   */
+  public fadeOut(): Promise<void> {
+    this.horizontalLine.fadeOut(1);
+    this.verticalLine.fadeOut(1);
+    
+    return this.animate(new LinearAnimation<HighlightedPoint, 'alpha'>('alpha', 1, 0));
   }
 
 }
@@ -147,12 +167,7 @@ export default class Graph extends Animatable {
     const point = new HighlightedPoint(this.plane, x, this.f(x), showLines);
     this.highlightedPoints.push(point);
 
-    if (showLines) {
-      point.horizontalLine.drawFrom('start', 0.5);
-      point.verticalLine.drawFrom('start', 0.5);
-    }
-
-    return point.animate(new LinearAnimation<HighlightedPoint, 'alpha'>('alpha', 0.5, 0, 255));
+    return point.appear();
   }
 
   /**
@@ -162,9 +177,7 @@ export default class Graph extends Animatable {
     let returnPromise = Promise.resolve();
 
     for (const point of this.highlightedPoints) {
-      returnPromise = point.animate(new LinearAnimation<HighlightedPoint, 'alpha'>('alpha', 1, 0));
-      point.horizontalLine.fadeOut(1);
-      point.verticalLine.fadeOut(1);
+      returnPromise = point.fadeOut();
     }
 
     return returnPromise;
