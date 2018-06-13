@@ -18,6 +18,9 @@ export function lineDash(segments: number[]): void {
   ctx.setLineDash(segments);
 }
 
+/**
+ * Describes the style used to display a line.
+ */
 export type LineStyle = {
   rgb: [number, number, number];
   alpha: number;
@@ -25,9 +28,25 @@ export type LineStyle = {
   dash: (number | ConstantLength)[];
 };
 
+export namespace LineStyle {
+
+  /**
+   * Applies the style of the line using strokeWeight(), stroke(), lineDash().
+   * 
+   * @param style The style to apply
+   */
+  export function apply(style: LineStyle) {
+
+    strokeWeight(style.strokeWeight.valueOf());
+    stroke(style.rgb[0], style.rgb[1], style.rgb[2], style.alpha);
+    lineDash(style.dash.map(x => x.valueOf()));
+
+  }
+}
+
 
 /**
- * Represents a line with the given end points and some style.
+ * Represents a line with the given endpoints and some style.
  */
 export default class Line extends Animatable {
 
@@ -66,9 +85,7 @@ export default class Line extends Animatable {
 
     push();
 
-    strokeWeight(this.style.strokeWeight.valueOf());
-    stroke(this.style.rgb[0], this.style.rgb[1], this.style.rgb[2], this.style.alpha);
-    lineDash(this.style.dash.map(x => x.valueOf()));
+    LineStyle.apply(this.style);
 
     line(this.start[0], this.start[1], this.end[0], this.end[1]);
 

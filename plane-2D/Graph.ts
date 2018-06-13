@@ -2,7 +2,7 @@
 import { Animatable, HarmonicAnimation } from '../lib/animation.js';
 
 import Plane2D from './Plane2D.js';
-import { LineStyle, lineDash } from './Line.js';
+import { LineStyle } from './Line.js';
 
 
 /**
@@ -59,10 +59,7 @@ export default class Graph extends Animatable {
 
     push();
 
-    strokeWeight(this.style.strokeWeight.valueOf());
-    stroke(this.style.rgb[0], this.style.rgb[1], this.style.rgb[2], this.style.alpha);
-    lineDash(this.style.dash.map(x => x.valueOf()));
-
+    LineStyle.apply(this.style);
     noFill();
 
     const { minX, maxX } = this.plane.minMaxValues;
