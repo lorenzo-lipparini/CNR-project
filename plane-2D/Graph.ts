@@ -155,4 +155,19 @@ export default class Graph extends Animatable {
     return point.animate(new LinearAnimation<HighlightedPoint, 'alpha'>('alpha', 0.5, 0, 255));
   }
 
+  /**
+   * Plays an animation where all the highlighted points on the graph fade out.
+   */
+  public removeHighlightedPoints(): Promise<void> {
+    let returnPromise = Promise.resolve();
+
+    for (const point of this.highlightedPoints) {
+      returnPromise = point.animate(new LinearAnimation<HighlightedPoint, 'alpha'>('alpha', 1, 0));
+      point.horizontalLine.fadeOut(1);
+      point.verticalLine.fadeOut(1);
+    }
+
+    return returnPromise;
+  }
+
 }
