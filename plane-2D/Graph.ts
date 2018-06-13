@@ -2,6 +2,7 @@
 import { Animatable, HarmonicAnimation } from '../lib/animation.js';
 
 import Plane2D from './Plane2D.js';
+import { LineStyle, lineDash } from './Line.js';
 
 
 /**
@@ -23,8 +24,9 @@ export default class Graph extends Animatable {
   /**
    * @param plane The plane where the graph will be draw, the graph will cover the visible portion of the x-axis by default
    * @param f The function to plot
+   * @param style The style which describes the stroke of the curve
    */
-  public constructor(public readonly plane: Plane2D, public f: (x: number) => number) {
+  public constructor(public readonly plane: Plane2D, public f: (x: number) => number, private style: LineStyle) {
     super();
 
     const { minX, maxX } = this.plane.minMaxValues;
@@ -55,10 +57,13 @@ export default class Graph extends Animatable {
   public show(): void {
     this.updateAnimations();
 
-    noFill();
+    push();
 
-    strokeWeight(2 * this.plane.pixelLength);
-    stroke(255, 255, 255);
+    strokeWeight(this.style.strokeWeight);
+    stroke(this.style.rgb[0], this.style.rgb[1], this.style.rgb[2], this.style.alpha);
+    lineDash(this.style.dash);
+
+    noFill();
 
     const { minX, maxX } = this.plane.minMaxValues;
     // Choose a small step compared to the visible interval
@@ -79,6 +84,8 @@ export default class Graph extends Animatable {
     vertex(this.interval[1], this.f(this.interval[1]));
 
     endShape();
+
+    pop();
   }
 
 }
