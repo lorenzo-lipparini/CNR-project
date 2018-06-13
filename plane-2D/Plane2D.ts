@@ -56,7 +56,8 @@ export default class Plane2D extends Animatable {
     this.gridLineStyle = {
       rgb: [255, 255, 255],
       alpha: 25,
-      strokeWeight: 2 * this.pixelLength
+      strokeWeight: 2 * this.pixelLength,
+      dash: [5 * this.pixelLength]
     };
 
 
@@ -84,7 +85,7 @@ export default class Plane2D extends Animatable {
   }
 
   /**
-   * Returns an object containing the maximum and minimum coordinates which fit on the screen.
+   * An object containing the minimum and maximum coordinates which fit on the screen.
    */
   public get minMaxValues() {
     return {

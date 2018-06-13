@@ -2,11 +2,27 @@
 import { Animatable, HarmonicAnimation } from '../lib/animation.js';
 
 
+// The canvas will become available only after createCanvas() is called, so wa<it for lineDash() to be called to get the context
+let ctx: CanvasRenderingContext2D | undefined = undefined;
+/**
+ * Sets a dashed line pattern for the stroke of the canvas;
+ * push() and pop() calls also take into account this property.
+ * 
+ * @param segments An array describing the pattern to use for the dashed lines
+ */
+export function lineDash(segments: number[]): void {
+  ctx = ctx || document.querySelector('canvas')!.getContext('2d')!;
+
+  ctx.setLineDash(segments);
+}
+
 export type LineStyle = {
   rgb: [number, number, number];
   alpha: number;
   strokeWeight: number;
+  dash: number[];
 };
+
 
 /**
  * Represents a line with the given end points and some style.
@@ -35,7 +51,8 @@ export default class Line extends Animatable {
     this.style = {
       rgb: [style.rgb[0], style.rgb[1], style.rgb[2]],
       alpha: style.alpha,
-      strokeWeight: style.strokeWeight
+      strokeWeight: style.strokeWeight,
+      dash: [...style.dash]
     };
   }
 
@@ -45,10 +62,15 @@ export default class Line extends Animatable {
   public show(): void {
     this.updateAnimations();
 
+    push();
+
     strokeWeight(this.style.strokeWeight);
     stroke(this.style.rgb[0], this.style.rgb[1], this.style.rgb[2], this.style.alpha);
+    lineDash(this.style.dash);
 
     line(this.start[0], this.start[1], this.end[0], this.end[1]);
+
+    pop();
   }
 
   /**
