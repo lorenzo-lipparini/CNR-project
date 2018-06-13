@@ -59,9 +59,9 @@ export default class Graph extends Animatable {
 
     push();
 
-    strokeWeight(this.style.strokeWeight);
+    strokeWeight(this.style.strokeWeight.valueOf());
     stroke(this.style.rgb[0], this.style.rgb[1], this.style.rgb[2], this.style.alpha);
-    lineDash(this.style.dash);
+    lineDash(this.style.dash.map(x => x.valueOf()));
 
     noFill();
 

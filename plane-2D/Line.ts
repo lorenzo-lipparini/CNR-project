@@ -1,6 +1,8 @@
 
 import { Animatable, HarmonicAnimation } from '../lib/animation.js';
 
+import { ConstantLength } from './Plane2D.js';
+
 
 // The canvas will become available only after createCanvas() is called, so wa<it for lineDash() to be called to get the context
 let ctx: CanvasRenderingContext2D | undefined = undefined;
@@ -19,8 +21,8 @@ export function lineDash(segments: number[]): void {
 export type LineStyle = {
   rgb: [number, number, number];
   alpha: number;
-  strokeWeight: number;
-  dash: number[];
+  strokeWeight: number | ConstantLength;
+  dash: (number | ConstantLength)[];
 };
 
 
@@ -64,9 +66,9 @@ export default class Line extends Animatable {
 
     push();
 
-    strokeWeight(this.style.strokeWeight);
+    strokeWeight(this.style.strokeWeight.valueOf());
     stroke(this.style.rgb[0], this.style.rgb[1], this.style.rgb[2], this.style.alpha);
-    lineDash(this.style.dash);
+    lineDash(this.style.dash.map(x => x.valueOf()));
 
     line(this.start[0], this.start[1], this.end[0], this.end[1]);
 

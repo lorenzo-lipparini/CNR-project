@@ -186,4 +186,44 @@ export default class Plane2D extends Animatable {
     return this.animate(new ExponentialAnimation<Plane2D, 'unitLength'>('unitLength', duration, factor * this.unitLength).harmonize());
   }
 
+  /**
+   * Creates a ConstantLength wrapper around the value which makes it compensate the changes to the scale
+   * so that the resulting length on the screen does not change.
+   * This is especially useful to define stroke weight and line dash values.
+   */
+  public constantLength(value: number): ConstantLength {
+    return new ConstantLength(this, value);
+  }
+
+}
+
+
+/**
+ * Represents a variable value of length on a given plane which always corresponds to the same resulting length on the screen;
+ * These values are constantly adjusted to respond to changes in the unit length of the plane.
+ */
+export class ConstantLength {
+
+  /**
+   * The resulting length on the screen, which should never change.
+   */
+  private readonly resultingLength: number;
+
+
+  /**
+   * @param plane The plane where the length will result constant
+   * @param initialValue The value of the length at the current zoom level
+   */
+  public constructor(private readonly plane: Plane2D, initialValue: number) {
+    // The formula follows from the fact that scale(plane.unitLength) is called at every frame,
+    // meaning that the resulting lengths on the screen are always scaled by that factor
+    this.resultingLength = plane.unitLength * initialValue;
+  }
+
+  public valueOf(): number {
+    // Always take the expected result and divide it by the unitLength to compensate the effect of scale()
+    // Doing the calculation every time makes the value respond to changes in unitLength
+    return this.resultingLength / this.plane.unitLength;
+  }
+
 }
