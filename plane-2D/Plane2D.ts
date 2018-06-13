@@ -26,6 +26,8 @@ export default class Plane2D extends Animatable {
     verticals: Line[]
   };
 
+  private gridAlpha = 25;
+
   /**
    * @param unitLength Distance in pixels between two points which are 1 unit apart on the plane
    * @param origin The point on the canvas where the two axes intercept
@@ -55,7 +57,7 @@ export default class Plane2D extends Animatable {
     // Since the pixelLength has changed, gridLineStyle needs to be updated
     this.gridLineStyle = {
       rgb: [255, 255, 255],
-      alpha: 25,
+      alpha: this.gridAlpha,
       strokeWeight: 2 * this.pixelLength,
       dash: [5 * this.pixelLength]
     };
@@ -149,6 +151,10 @@ export default class Plane2D extends Animatable {
    * @param value Alpha value to set
    */
   public setGridAlpha(value: number): void {
+    // Save the value for the next time that the grid lines will be recalculated
+    this.gridAlpha = value;
+
+    // Change the value for the current grid lines
     for (const line of this.gridLines.horizontals.concat(this.gridLines.verticals)) {
       line.style.alpha = value;
     }
