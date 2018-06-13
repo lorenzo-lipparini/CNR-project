@@ -1,5 +1,5 @@
 
-import { Animatable, HarmonicAnimation } from '../lib/animation.js';
+import { Animatable, HarmonicAnimation, animate, updateAnimations, LinearAnimation } from '../lib/animation.js';
 
 import { ConstantLength } from './Plane2D.js';
 
@@ -82,6 +82,7 @@ export default class Line extends Animatable {
    */
   public show(): void {
     this.updateAnimations();
+    updateAnimations(this.style);
 
     push();
 
@@ -105,6 +106,15 @@ export default class Line extends Animatable {
 
     return this.animate(new HarmonicAnimation<Line, 'start'>('start', duration, originPoint, this.start)
               .parallel(new HarmonicAnimation<Line, 'end'>('end', duration, originPoint, this.end)));
+  }
+
+  /**
+   * Plays an animation where the line gradually fades out.
+   * 
+   * @param duration The duration of the animation
+   */
+  public fadeOut(duration: number): Promise<void> {
+    return animate(this.style, new LinearAnimation<LineStyle, 'alpha'>('alpha', duration, 0));
   }
 
 }
