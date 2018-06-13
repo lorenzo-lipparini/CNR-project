@@ -20,18 +20,24 @@ export function animate<T, U extends keyof T>(target: T, animation: Animation<T,
 }
 
 /**
- * Updates all the animations created with animate();
+ * Updates all the animations created with animate(),
+ * if a target is passed, it only updates the animations bound to that target.
  * to be called at the beginning of draw().
+ * 
+ * @param target Target of the animations to update
  */
-export function updateAnimations(): void {
+export function updateAnimations(target?: any): void {
   for (let i = 0; i < globalAnimations.length; i++) {
-    if (globalAnimations[i].update()) { // If the animation has finished
-      // Fire the callback and remove it from the list
-
-      globalAnimations[i].callback();
-
-      globalAnimations.splice(i, 1);
-      i--;
+    // If this is the target or there is no specific target
+    if (target === undefined || globalAnimations[i].target === target) {
+      if (globalAnimations[i].update()) { // If the animation has finished
+        // Fire the callback and remove it from the list
+  
+        globalAnimations[i].callback();
+  
+        globalAnimations.splice(i, 1);
+        i--;
+      }
     }
   }
 }
