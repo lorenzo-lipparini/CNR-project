@@ -1,9 +1,53 @@
 
-import { Animatable, HarmonicAnimation } from '../lib/animation.js';
+import { Animatable, LinearAnimation, HarmonicAnimation } from '../lib/animation.js';
 
 import Plane2D from './Plane2D.js';
-import { LineStyle } from './Line.js';
+import Line, { LineStyle } from './Line.js';
 
+
+/**
+ * Represents a highlighted point on the plane;
+ * Dashed lines parallel to the axes which intercept at the point may also be shown.
+ */
+class HighlightedPoint extends Animatable {
+
+  public alpha: number = 1;
+
+  public horizontalLine: Line;
+  public verticalLine: Line;
+
+  /**
+   * @param plane The plane where the point will sit
+   * @param x The x-coordinate of the point
+   * @param y The y-coordinate of the point
+   * @param showLines Decides whether the additional lines are shown or not
+   */
+  public constructor(private readonly plane: Plane2D, public x: number, public y: number, showLines = false) {
+    super();
+
+    const lineStyle: LineStyle = {
+      rgb: [255, 255, 255],
+      alpha: showLines ? 255 : 0, // Show the lines or not depending on the parameter
+      strokeWeight: this.plane.constantLength(1 * this.plane.pixelLength),
+      dash: [this.plane.constantLength(5 * this.plane.pixelLength)]
+    };
+
+    this.horizontalLine = new Line(0, y, x, y, lineStyle);
+    this.verticalLine = new Line(x, 0, x, y, lineStyle);
+  }
+
+  public show(): void {
+    this.updateAnimations();
+
+    this.verticalLine.show();
+    this.horizontalLine.show();
+
+    noStroke();
+    fill(255, 255, 255, this.alpha);
+    ellipse(this.x, this.y, 5 * this.plane.pixelLength);
+  }
+
+}
 
 /**
  * Class that makes it easy to draw the graph of a function, to be used in combination with Plane2D.
@@ -20,13 +64,15 @@ export default class Graph extends Animatable {
    */
   public interval: [number, number];
 
+  private readonly highlightedPoints: HighlightedPoint[] = [];
+
 
   /**
    * @param plane The plane where the graph will be draw, the graph will cover the visible portion of the x-axis by default
    * @param f The function to plot
    * @param style The style which describes the stroke of the curve
    */
-  public constructor(public readonly plane: Plane2D, public f: (x: number) => number, private style: LineStyle) {
+  public constructor(public readonly plane: Plane2D, public readonly f: (x: number) => number, public style: LineStyle) {
     super();
 
     const { minX, maxX } = this.plane.minMaxValues;
@@ -83,6 +129,30 @@ export default class Graph extends Animatable {
     endShape();
 
     pop();
+
+    for (const point of this.highlightedPoints) {
+      point.show();
+    }
+
+  }
+
+  /**
+   * Plays an animation where a point at the given coordinate on the graph is highlighted;
+   * Dashed lines parallel to the axes which intercept at the point can also be shown.
+   * 
+   * @param x The x-coordinate of the point to highlight
+   * @param showLines Decides whether the lines parallel to the axes are shown or not
+   */
+  public highlightPoint(x: number, showLines: boolean = false): Promise<void> {
+    const point = new HighlightedPoint(this.plane, x, this.f(x), showLines);
+    this.highlightedPoints.push(point);
+
+    if (showLines) {
+      point.horizontalLine.drawFrom('start', 0.5);
+      point.verticalLine.drawFrom('start', 0.5);
+    }
+
+    return point.animate(new LinearAnimation<HighlightedPoint, 'alpha'>('alpha', 0.5, 0, 255));
   }
 
 }

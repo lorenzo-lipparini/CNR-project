@@ -40,7 +40,7 @@ export default class MengerSponge extends Cube {
   }
 
   /**
-   * Determines wether the cubes which are not part of the fractal will be drawn or not.
+   * Determines whether the cubes which are not part of the fractal will be drawn or not.
    * 
    * @default false
    */
