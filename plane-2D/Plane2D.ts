@@ -78,10 +78,12 @@ export default class Plane2D extends Animatable {
 
     // Create the grid lines in pairs to make them easier to animate
     for (let n = 1; n <= maxValue; n++) {
-      this.gridLines.horizontals.push(new Line(minX, n, maxX, n, this.gridLineStyle));
-      this.gridLines.horizontals.push(new Line(minX, -n, maxX, -n, this.gridLineStyle));
-      this.gridLines.verticals.push(new Line(n, minY, n, maxY, this.gridLineStyle));
-      this.gridLines.verticals.push(new Line(-n, minY, -n, maxY, this.gridLineStyle));
+      // Use maxValue to make sure that the midpoint of all the lines lies on one of the the axes,
+      // so that the makeGridAppear() animation looks better
+      this.gridLines.horizontals.push(new Line(-maxValue, n, maxValue, n, this.gridLineStyle));
+      this.gridLines.horizontals.push(new Line(-maxValue, -n, maxValue, -n, this.gridLineStyle));
+      this.gridLines.verticals.push(new Line(n, -maxValue, n, maxValue, this.gridLineStyle));
+      this.gridLines.verticals.push(new Line(-n, -maxValue, -n, maxValue, this.gridLineStyle));
     }
 
   }
@@ -176,12 +178,11 @@ export default class Plane2D extends Animatable {
         lines[i + 1].style.alpha = this.gridAlpha;
         lines[i + 1].drawFrom('center', 0.5);
 
-        await timer(0.3);
+        await timer(0.2);
       }
     };
 
     makeLinesAppear(this.gridLines.horizontals);
-    await timer(0.8);
     await makeLinesAppear(this.gridLines.verticals);
   }
 
