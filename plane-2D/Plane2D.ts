@@ -164,13 +164,16 @@ export default class Plane2D extends Animatable {
    * Plays an animation where the grid lines arise from the axes in couples.
    */
   public async makeGridAppear(): Promise<void> {
+    // Set the new transparency for newly generated lines
+    // Don't use setGridAlpha(), since the current lines must be shown only when their drawFrom() animation has started
+    this.gridAlpha = 25;
     
     const makeLinesAppear = async (lines: Line[]) => {
       for (let i = 0; i < lines.length; i += 2) {
-        lines[i].style.alpha = this.gridLineStyle.alpha;
+        lines[i].style.alpha = this.gridAlpha;
         lines[i].drawFrom('center', 0.5);
 
-        lines[i + 1].style.alpha = this.gridLineStyle.alpha;
+        lines[i + 1].style.alpha = this.gridAlpha;
         lines[i + 1].drawFrom('center', 0.5);
 
         await timer(0.3);
