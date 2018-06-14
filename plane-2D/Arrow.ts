@@ -91,7 +91,7 @@ export default class Arrow extends Animatable {
   public show(): void {
 
     // Change this value to choose the size of the tips of the arrows
-    const tipHeight = 10 * this.plane.pixelLength;
+    const tipHeight = 20 * this.plane.pixelLength;
 
     this.updateAnimations();
 
@@ -103,7 +103,7 @@ export default class Arrow extends Animatable {
 
     strokeCap(SQUARE);
     stroke(showColor);
-    strokeWeight(2 * this.plane.pixelLength);
+    strokeWeight(5 * this.plane.pixelLength);
 
     line(this.tail[0], this.tail[1], this.head[0] - tipHeight * Math.cos(this.angle), this.head[1] - tipHeight * Math.sin(this.angle));
 
@@ -130,7 +130,7 @@ export default class Arrow extends Animatable {
     // Change this value to choose the size of the arc which displays the angle
     const angleRadius = 0.2;
 
-    strokeWeight(1 * this.plane.pixelLength);
+    strokeWeight(2 * this.plane.pixelLength);
     // Set the alpha of the angle, which is never bigger than that of the arrow
     stroke(this.color[0], this.color[1], this.color[2], this.drawnAngleAlphaRatio * this.alpha);
     noFill();

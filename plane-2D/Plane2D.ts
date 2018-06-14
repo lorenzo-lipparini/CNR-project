@@ -58,8 +58,8 @@ export default class Plane2D extends Animatable {
     this.gridLineStyle = {
       rgb: [255, 255, 255],
       alpha: this.gridAlpha,
-      strokeWeight: 2 * this.pixelLength,
-      dash: [5 * this.pixelLength]
+      strokeWeight: 5 * this.pixelLength,
+      dash: [10 * this.pixelLength]
     };
 
 
@@ -115,7 +115,7 @@ export default class Plane2D extends Animatable {
   public showAxes(): void {
     this.updateAnimations();
 
-    strokeWeight(2 * this.pixelLength);
+    strokeWeight(5 * this.pixelLength);
     stroke(255, 255, 255, 100);
 
     const { minX, maxX, minY, maxY } = this.minMaxValues;
@@ -126,7 +126,7 @@ export default class Plane2D extends Animatable {
     line(0, minY, 0, maxY);
     
 
-    const tickLength = 10 * this.pixelLength;
+    const tickLength = 15 * this.pixelLength;
 
     // Foreach integer value n visible on the x-axis
     for (let n = Math.ceil(minX); n <= Math.floor(maxX); n++) {

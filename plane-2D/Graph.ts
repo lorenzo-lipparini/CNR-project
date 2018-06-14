@@ -28,8 +28,8 @@ class HighlightedPoint extends Animatable {
     const lineStyle: LineStyle = {
       rgb: [255, 255, 255],
       alpha: showLines ? 255 : 0, // Show the lines or not depending on the parameter
-      strokeWeight: this.plane.constantLength(1 * this.plane.pixelLength),
-      dash: [this.plane.constantLength(5 * this.plane.pixelLength)]
+      strokeWeight: this.plane.constantLength(5 * this.plane.pixelLength),
+      dash: [this.plane.constantLength(10 * this.plane.pixelLength)]
     };
 
     this.horizontalLine = new Line(0, y, x, y, lineStyle);
@@ -44,7 +44,7 @@ class HighlightedPoint extends Animatable {
 
     noStroke();
     fill(255, 255, 255, this.alpha);
-    ellipse(this.x, this.y, 5 * this.plane.pixelLength);
+    ellipse(this.x, this.y, 15 * this.plane.pixelLength);
   }
 
   /**
