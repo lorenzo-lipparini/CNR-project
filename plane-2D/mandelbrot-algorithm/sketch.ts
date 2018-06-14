@@ -56,7 +56,7 @@ window.draw = () => {
   background(0);
   plane.applyScale();
 
-  plane.showAxes();
+  plane.xyAxes.show();
   
   noFill();
 

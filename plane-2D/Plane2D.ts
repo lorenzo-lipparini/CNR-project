@@ -20,6 +20,12 @@ export default class Plane2D extends Animatable {
   public pixelLength!: number;
 
   /**
+   * The x and y axes of the plane;
+   * This is an object which can be added to the scene.
+   */
+  public xyAxes: XYAxes;
+
+  /**
    * A grid of orthogonal lines which intercept at points on the plane with integer coordinates;
    * This is an object which can be added to the scene.
    */
@@ -34,6 +40,13 @@ export default class Plane2D extends Animatable {
 
     // The unitLength setter will give a value to all the instance fields
     this.unitLength = unitLength;
+
+    this.xyAxes = new XYAxes(this, {
+      rgb: [255, 255, 255],
+      alpha: 100,
+      strokeWeight: this.constantLength(5 * this.pixelLength),
+      dash: []
+    });
 
     this.grid = new Grid(this, {
       rgb: [255, 255, 255],
@@ -70,42 +83,10 @@ export default class Plane2D extends Animatable {
    * To be called in draw() after setting the background.
    */
   public applyScale(): void {
-    translate(this.origin[0], this.origin[1]);
-    scale(this.unitLength, -this.unitLength);
-  }
-
-  /**
-   * Draws the x and y axes on the canvas.
-   */
-  public showAxes(): void {
     this.updateAnimations();
 
-    strokeWeight(5 * this.pixelLength);
-    stroke(255, 255, 255, 100);
-
-    const { minX, maxX, minY, maxY } = this.minMaxValues;
-
-    // X-axis
-    line(minX, 0, maxX, 0);
-    // Y-axis
-    line(0, minY, 0, maxY);
-    
-
-    const tickLength = 15 * this.pixelLength;
-
-    // Foreach integer value n visible on the x-axis
-    for (let n = Math.ceil(minX); n <= Math.floor(maxX); n++) {
-      if (n !== 0) {
-        line(n, -tickLength/2, n, tickLength/2);
-      }
-    }
-    // Foreach integer value n visible on the y-axis
-    for (let n = Math.ceil(minY); n <= Math.floor(maxY); n++) {
-      if (n !== 0) {
-        line(-tickLength/2, n, tickLength/2, n);
-      }
-    }
-
+    translate(this.origin[0], this.origin[1]);
+    scale(this.unitLength, -this.unitLength);
   }
 
   /**
@@ -146,6 +127,47 @@ export default class Plane2D extends Animatable {
   }
 
 }
+
+
+/**
+ * Represents the x and y axes of a 2D plane.
+ */
+class XYAxes {
+
+  public constructor(private readonly plane: Plane2D, public style: LineStyle) { }
+
+  public show(): void {
+    push();
+
+    LineStyle.apply(this.style);
+
+    const { minX, maxX, minY, maxY } = this.plane.minMaxValues;
+
+    // X-axis
+    line(minX, 0, maxX, 0);
+    // Y-axis
+    line(0, minY, 0, maxY);
+
+    const tickLength = 15 * this.plane.pixelLength;
+
+    // Foreach integer value n visible on the x-axis
+    for (let n = Math.ceil(minX); n <= Math.floor(maxX); n++) {
+      if (n !== 0) {
+        line(n, -tickLength/2, n, tickLength/2);
+      }
+    }
+    // Foreach integer value n visible on the y-axis
+    for (let n = Math.ceil(minY); n <= Math.floor(maxY); n++) {
+      if (n !== 0) {
+        line(-tickLength/2, n, tickLength/2, n);
+      }
+    }
+
+    pop();
+  }
+
+}
+
 
 /**
  * Represents a unit grid on a 2D plane.
