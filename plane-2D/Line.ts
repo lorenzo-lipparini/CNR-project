@@ -50,37 +50,37 @@ export namespace LineStyle {
  */
 export default class Line extends Animatable {
 
+  /**
+   * Used to prevent the line from being drawn.
+   */
+  public hidden = false;
+
   public start: [number, number];
   public end: [number, number];
-
-  public style: LineStyle;
   
 
   /**
    * @param startX X-coordinate of the start point of the line 
    * @param startY Y-coordinate of the start point of the line 
    * @param endX X-coordinate of the endpoint of the line 
-   * @param endY Y-coordinate of the endpoint of the line 
+   * @param endY Y-coordinate of the endpoint of the line
+   * @param style The style which determines how the line is drawn, the object is stored by reference 
    */
-  public constructor(startX: number, startY: number, endX: number, endY: number, style: LineStyle) {
+  public constructor(startX: number, startY: number, endX: number, endY: number, public style: LineStyle) {
     super();
     
     this.start = [startX, startY];
     this.end = [endX, endY];
-
-    // Manual deep copy
-    this.style = {
-      rgb: [style.rgb[0], style.rgb[1], style.rgb[2]],
-      alpha: style.alpha,
-      strokeWeight: style.strokeWeight,
-      dash: [...style.dash]
-    };
   }
 
   /**
    * Draws the line on the screen.
    */
   public show(): void {
+    if (this.hidden) {
+      return;
+    }
+
     this.updateAnimations();
     updateAnimations(this.style);
 
