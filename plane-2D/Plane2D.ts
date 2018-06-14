@@ -1,6 +1,6 @@
 
 import timer from '../lib/timer.js';
-import { Animatable, ExponentialAnimation } from '../lib/animation.js';
+import { Animatable, ExponentialAnimation, animate, updateAnimations, LinearAnimation } from '../lib/animation.js';
 
 import Line, { LineStyle } from './Line.js';
 
@@ -19,14 +19,11 @@ export default class Plane2D extends Animatable {
    */
   public pixelLength!: number;
 
-  private gridLineStyle!: LineStyle;
-
-  private gridLines!: {
-    horizontals: Line[],
-    verticals: Line[]
-  };
-
-  private gridAlpha = 25;
+  /**
+   * A grid of orthogonal lines which intercept at points on the plane with integer coordinates;
+   * This is an object which can be added to the scene.
+   */
+  public grid: Grid;
 
   /**
    * @param unitLength Distance in pixels between two points which are 1 unit apart on the plane
@@ -37,55 +34,23 @@ export default class Plane2D extends Animatable {
 
     // The unitLength setter will give a value to all the instance fields
     this.unitLength = unitLength;
+
+    this.grid = new Grid(this, {
+      rgb: [255, 255, 255],
+      alpha: 25,
+      strokeWeight: this.constantLength(5 * this.pixelLength),
+      dash: [this.constantLength(10 * this.pixelLength)]
+    });
   }
 
-  get unitLength(): number {
+  public get unitLength(): number {
     return this._unitLength;
   }
-  set unitLength(value: number) {
-    // Prevent useless computation
-    if (value === this._unitLength) {
-      return;
-    }
-
+  public set unitLength(value: number) {
     this._unitLength = value;
 
     // Recalculate the pixelLength so that it always compensates the transformations of applyScale()
     this.pixelLength = 1 / this.unitLength;
-
-
-    // Since the pixelLength has changed, gridLineStyle needs to be updated
-    this.gridLineStyle = {
-      rgb: [255, 255, 255],
-      alpha: this.gridAlpha,
-      strokeWeight: 5 * this.pixelLength,
-      dash: [10 * this.pixelLength]
-    };
-
-
-    // Get rid of the previous lines
-    this.gridLines = {
-      horizontals: [],
-      verticals: []
-    };
-
-    // Create the new lines which compose the grid
-
-    const { minX, maxX, minY, maxY } = this.minMaxValues;
-
-    // The maximum distance of any point on the axes from the origin
-    const maxValue = Math.max(Math.abs(minX), Math.abs(maxX), Math.abs(minY), Math.abs(maxY));
-
-    // Create the grid lines in pairs to make them easier to animate
-    for (let n = 1; n <= maxValue; n++) {
-      // Use maxValue to make sure that the midpoint of all the lines lies on one of the the axes,
-      // so that the makeGridAppear() animation looks better
-      this.gridLines.horizontals.push(new Line(-maxValue, n, maxValue, n, this.gridLineStyle));
-      this.gridLines.horizontals.push(new Line(-maxValue, -n, maxValue, -n, this.gridLineStyle));
-      this.gridLines.verticals.push(new Line(n, -maxValue, n, maxValue, this.gridLineStyle));
-      this.gridLines.verticals.push(new Line(-n, -maxValue, -n, maxValue, this.gridLineStyle));
-    }
-
   }
 
   /**
@@ -141,64 +106,6 @@ export default class Plane2D extends Animatable {
       }
     }
 
-    for (const line of this.gridLines.horizontals.concat(this.gridLines.verticals)) {
-      line.show();
-    }
-
-  }
-
-  /**
-   * Sets the alpha value of all the lines which are part of the grid.
-   * 
-   * @param value Alpha value to set
-   */
-  public setGridAlpha(value: number): void {
-    // Save the value for the next time that the grid lines will be recalculated
-    this.gridAlpha = value;
-
-    // Change the value for the current grid lines
-    for (const line of this.gridLines.horizontals.concat(this.gridLines.verticals)) {
-      line.style.alpha = value;
-    }
-  }
-
-  /**
-   * Plays an animation where the grid lines arise from the axes four at a time.
-   */
-  public async makeGridAppear(): Promise<void> {
-    // Set the new transparency for newly generated lines
-    // Don't use setGridAlpha(), since the current lines must be shown only when their drawFrom() animation has started
-    this.gridAlpha = 25;
-    
-    const makeLinesAppear = async (lines: Line[]) => {
-      for (let i = 0; i < lines.length; i += 2) {
-        lines[i].style.alpha = this.gridAlpha;
-        lines[i].drawFrom('center', 0.5);
-
-        lines[i + 1].style.alpha = this.gridAlpha;
-        lines[i + 1].drawFrom('center', 0.5);
-
-        await timer(0.2);
-      }
-    };
-
-    makeLinesAppear(this.gridLines.horizontals);
-    await makeLinesAppear(this.gridLines.verticals);
-  }
-
-  /**
-   * Plays an animation where the grid gradually fades out.
-   */
-  public fadeOutGrid(): Promise<void> {
-    this.gridAlpha = 0;
-
-    let returnPromise = Promise.resolve();
-
-    for (const line of this.gridLines.horizontals.concat(this.gridLines.verticals)) {
-      returnPromise = line.fadeOut(2);
-    }
-
-    return returnPromise;
   }
 
   /**
@@ -207,8 +114,26 @@ export default class Plane2D extends Animatable {
    * @param duration Duration in seconds of the animation
    * @param factor Factor by which the unitLength is multiplied
    */
-  public zoom(duration: number, factor: number): Promise<void> {
-    return this.animate(new ExponentialAnimation<Plane2D, 'unitLength'>('unitLength', duration, factor * this.unitLength).harmonize());
+  public async zoom(duration: number, factor: number): Promise<void> {
+    const { minX, maxX, minY, maxY } = this.minMaxValues;
+    const newMinMaxValues = {
+      minX: minX / factor,
+      maxX: maxX / factor,
+      minY: minY / factor,
+      maxY: maxY / factor
+    };
+
+    // If this is a zoom out, extend the grid before playing the animation
+    if (factor < 1) {
+      this.grid.fitArea(newMinMaxValues);
+    }
+
+    await this.animate(new ExponentialAnimation<Plane2D, 'unitLength'>('unitLength', duration, factor * this.unitLength).harmonize());
+  
+    // If this was a zoom in, shrink the grid as soon as the animation ends
+    if (factor > 1) {
+      this.grid.fitArea(this.minMaxValues);
+    }
   }
 
   /**
@@ -218,6 +143,105 @@ export default class Plane2D extends Animatable {
    */
   public constantLength(value: number): ConstantLength {
     return new ConstantLength(this, value);
+  }
+
+}
+
+/**
+ * Represents a unit grid on a 2D plane.
+ */
+class Grid {
+
+  /**
+   * The lines that compose the grid.
+   */
+  private lines: {
+    horizontals: Line[],
+    verticals: Line[]
+  } & Iterable<Line> = {
+    horizontals: [],
+    verticals: [],
+    // Make it possible to iterate directly over the lines object
+    [Symbol.iterator]: function* () {
+      yield* this.horizontals;
+      yield* this.verticals;
+    }
+  };
+  
+  /**
+   * @param plane The plane where the grid will sit
+   * @param style The style which will be applied to the lines which compose the grid
+   */
+  public constructor(plane: Plane2D, public readonly style: LineStyle) {
+    // Cover the whole plane by default
+    this.fitArea(plane.minMaxValues);
+  }
+
+  /**
+   * Recalculates the lines which compose the grid so that they cover a given area.
+   * 
+   * @param minMaxValues The minimum and maximum coordinates which enclose the rectangular area to cover
+   */
+  public fitArea(minMaxValues: { minX: number; maxX: number; minY: number; maxY: number; }): void {
+    // Get rid of the previous lines
+    this.lines.horizontals = [];
+    this.lines.verticals = [];
+
+    const { minX, maxX, minY, maxY } = minMaxValues;
+    // The maximum distance of any point on the axes from the origin
+    const maxValue = Math.max(Math.abs(minX), Math.abs(maxX), Math.abs(minY), Math.abs(maxY));
+
+    // Create the grid lines in pairs to make them easier to animate
+    for (let n = 1; n <= maxValue; n++) {
+      // Use maxValue to make sure that the midpoint of all the lines lies on one of the the axes,
+      // so that the appear animation looks better
+      this.lines.horizontals.push(new Line(-maxValue, n, maxValue, n, this.style));
+      this.lines.horizontals.push(new Line(-maxValue, -n, maxValue, -n, this.style));
+      this.lines.verticals.push(new Line(n, -maxValue, n, maxValue, this.style));
+      this.lines.verticals.push(new Line(-n, -maxValue, -n, maxValue, this.style));
+    }
+  }
+
+  public show(): void {
+    updateAnimations(this.style);
+
+    for (const line of this.lines) {
+      line.show();
+    }
+  }
+
+  /**
+   * Plays an animation where the grid lines arise from the axes four at a time.
+   */
+  public async appear(): Promise<void> {
+    this.style.alpha = 25;
+
+    // Prevent lines from being drawn until their drawFrom animation has started
+    for (const line of this.lines) {
+      line.hidden = true;
+    }
+    
+    const makeLinesAppear = async (lines: Line[]) => {
+      for (let i = 0; i < lines.length; i += 2) {
+        lines[i].hidden = false;
+        lines[i].drawFrom('center', 0.5);
+
+        lines[i + 1].hidden = false;
+        lines[i + 1].drawFrom('center', 0.5);
+
+        await timer(0.2);
+      }
+    };
+
+    makeLinesAppear(this.lines.horizontals);
+    await makeLinesAppear(this.lines.verticals);
+  }
+
+  /**
+   * Plays an animation where the grid gradually fades out.
+   */
+  public fadeOut(): Promise<void> {
+    return animate(this.style, new LinearAnimation<LineStyle, 'alpha'>('alpha', 2, 0));
   }
 
 }
