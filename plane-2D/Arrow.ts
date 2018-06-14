@@ -12,8 +12,10 @@ import Plane2D from './Plane2D.js';
  */
 export default class Arrow extends Animatable {
 
-  static instances: Arrow[] = [];
-  
+  /**
+   * The arrows generated during animations, which should be drawn whenever this arrow is shown.
+   */
+  private animationArrows: Arrow[] = [];
 
   public alpha = 255;
   
@@ -29,8 +31,6 @@ export default class Arrow extends Animatable {
    */
   public constructor(private plane: Plane2D, public color: number[], public head: number[], public tail: number[] = [0, 0]) {
     super();
-
-    Arrow.instances.push(this);
   }
 
   /**
@@ -137,6 +137,10 @@ export default class Arrow extends Animatable {
 
     arc(this.tail[0], this.tail[1], angleRadius, angleRadius, 0, this.drawnAngleFraction * this.angle);
 
+    // Show all the arrows generated during animations
+    for (const arrow of this.animationArrows) {
+      arrow.show();
+    }
   }
 
   /**
@@ -165,6 +169,8 @@ export default class Arrow extends Animatable {
     const addend1 = this.copy();
     const addend2 = arrow.copy();
 
+    this.animationArrows.push(addend1, addend2);
+
     // Since the current arrow should take the value of the sum at then end, use it to represent the sum during the animation
     
     this.alpha = 0;
@@ -178,8 +184,7 @@ export default class Arrow extends Animatable {
     addend2.fadeOut();
     await this.fadeIn();
 
-    addend1.delete();
-    addend2.delete();
+    this.animationArrows = [];
   }
 
   /**
@@ -226,23 +231,6 @@ export default class Arrow extends Animatable {
     copy.drawnAngleAlphaRatio = this.drawnAngleAlphaRatio;
 
     return copy;
-  }
-
-  /**
-   * After this method is called, the arrow won't be drawn in Arrow.showAll() anymore.
-   */
-  public delete(): void {
-    Arrow.instances.splice(Arrow.instances.indexOf(this), 1);
-  }
-
-
-  /**
-   * Draws all the arrows ever created onto the canvas, these include the arrows generated during animations.
-   */
-  static showAll(): void {
-    for (const instance of Arrow.instances) {
-      instance.show();
-    }
   }
 
 }

@@ -70,7 +70,8 @@ window.draw = () => {
 
   ellipse(0, 0, 2);
 
-  Arrow.showAll();
+  c.show();
+  z.show();
 
   FrameCapture.update();
 };
