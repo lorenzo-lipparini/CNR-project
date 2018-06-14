@@ -163,7 +163,7 @@ export default class Plane2D extends Animatable {
   }
 
   /**
-   * Plays an animation where the grid lines arise from the axes in couples.
+   * Plays an animation where the grid lines arise from the axes four at a time.
    */
   public async makeGridAppear(): Promise<void> {
     // Set the new transparency for newly generated lines
@@ -184,6 +184,21 @@ export default class Plane2D extends Animatable {
 
     makeLinesAppear(this.gridLines.horizontals);
     await makeLinesAppear(this.gridLines.verticals);
+  }
+
+  /**
+   * Plays an animation where the grid gradually fades out.
+   */
+  public fadeOutGrid(): Promise<void> {
+    this.gridAlpha = 0;
+
+    let returnPromise = Promise.resolve();
+
+    for (const line of this.gridLines.horizontals.concat(this.gridLines.verticals)) {
+      returnPromise = line.fadeOut(2);
+    }
+
+    return returnPromise;
   }
 
   /**
