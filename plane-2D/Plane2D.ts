@@ -11,14 +11,6 @@ import Line, { LineStyle } from './Line.js';
  */
 export default class Plane2D extends Animatable {
 
-  private _unitLength!: number;
-
-  /**
-   * Gives a unit of length on the plane which always corresponds to one pixel on the screen;
-   * This may be used for any kind of measure which shouldn't depend on the zoom level (such as stroke weight).
-   */
-  public pixelLength!: number;
-
   /**
    * The x and y axes of the plane;
    * This is an object which can be added to the scene.
@@ -35,11 +27,8 @@ export default class Plane2D extends Animatable {
    * @param unitLength Distance in pixels between two points which are 1 unit apart on the plane
    * @param origin The point on the canvas where the two axes intercept
    */
-  public constructor(unitLength: number, private origin = [width / 2, height / 2]) {
+  public constructor(public unitLength: number, private origin = [width / 2, height / 2]) {
     super();
-
-    // The unitLength setter will give a value to all the instance fields
-    this.unitLength = unitLength;
 
     this.xyAxes = new XYAxes(this, {
       rgb: [255, 255, 255],
@@ -56,14 +45,12 @@ export default class Plane2D extends Animatable {
     });
   }
 
-  public get unitLength(): number {
-    return this._unitLength;
-  }
-  public set unitLength(value: number) {
-    this._unitLength = value;
-
-    // Recalculate the pixelLength so that it always compensates the transformations of applyScale()
-    this.pixelLength = 1 / this.unitLength;
+  /**
+   * Gives a unit of length on the plane which always corresponds to one pixel on the screen;
+   * This may be used for small measures which shouldn't depend on the resolution (such as stroke weight).
+   */
+  public get pixelLength(): number {
+    return 1 / this.unitLength;
   }
 
   /**
@@ -79,7 +66,7 @@ export default class Plane2D extends Animatable {
   }
 
   /**
-   * Required to correctly map points on the plane to points on the canvas, according to the unit length;
+   * Required to correctly map points on the plane to points on the canvas according to the unit length;
    * To be called in draw() after setting the background.
    */
   public applyScale(): void {
@@ -111,7 +98,7 @@ export default class Plane2D extends Animatable {
 
     await this.animate(new ExponentialAnimation<Plane2D, 'unitLength'>('unitLength', duration, factor * this.unitLength).harmonize());
   
-    // If this was a zoom in, shrink the grid as soon as the animation ends
+    // If this is a zoom in, shrink the grid as soon as the animation ends
     if (factor > 1) {
       this.grid.fitArea(this.minMaxValues);
     }
