@@ -66,6 +66,18 @@ export default class Plane2D extends Animatable {
   }
 
   /**
+   * Return true if the given point on the plane lies inside the canvas, false otherwise.
+   * 
+   * @param x The x coordinate of the point
+   * @param y The y coordinate of the point
+   */
+  public isVisiblePoint(x: number, y: number): boolean {
+    const { minX, maxX, minY, maxY } = this.minMaxValues;
+
+    return minX <= x && x <= maxX && minY <= y && y <= maxY;
+  }
+
+  /**
    * Required to correctly map points on the plane to points on the canvas according to the unit length;
    * To be called in draw() after setting the background.
    */

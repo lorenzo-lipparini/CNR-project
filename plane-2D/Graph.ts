@@ -118,7 +118,7 @@ export default class Graph extends Animatable {
 
   /**
    * Draws the graph of the function on the plane,
-   * discontinuities of the function correspond to vertical lines in the graph.
+   * discontinuities of the function (excluding vertical asintotes) correspond to vertical lines in the graph.
    */
   public show(): void {
     this.updateAnimations();
@@ -130,7 +130,7 @@ export default class Graph extends Animatable {
 
     const { minX, maxX } = this.plane.minMaxValues;
     // Choose a small step compared to the visible interval
-    const step = (maxX - minX) / 1000;
+    const dx = (maxX - minX) / 1000;
 
     // Except while a drawFrom animation is playing,
     // the interval should always correspond to the visible portion of the x-axis
@@ -138,13 +138,48 @@ export default class Graph extends Animatable {
       this.interval = [minX, maxX];
     }
 
+
+    // Cut the curve when it goes outside the screen, and draw again when it goes back inside;
+    // This prevents creating too long paths which are not drawn correctly;
+    // Also, this prevents vertical lines from being drawn where the curve has an asintote
+
+    // Coordinates of the previous point, used to make the curve start past the edge when it reenters the screen
+    let previous = [this.interval[0], this.f(this.interval[0])];
+    // True if the previous point was inside the screen, used to detect the exact points where the curve goes out and back into the screen
+    let previousOffScreen = false;
+
     beginShape();
 
-    for (let x = this.interval[0]; x <= this.interval[1]; x += step) {
-      vertex(x, this.f(x));
+    for (let x = this.interval[0]; x <= this.interval[1]; x += dx) {
+      let y = this.f(x);
+
+      if (!this.plane.isVisiblePoint(x, y)) {
+        // If this is the first point that goes outside the screen, cut the curve
+        if (!previousOffScreen) {
+          // Add the current point so that the curve visually goes past the edge
+          vertex(x, y);
+          endShape();
+        }
+
+        previousOffScreen = true;
+      } else {
+        // If this is the first point that reenters the screen, start a new curve
+        if (previousOffScreen) {
+          beginShape();
+          // Add the previous point so that the curve visually goes past the edge
+          vertex(previous[0], previous[1]);
+        }
+
+        vertex(x, y);
+        previousOffScreen = false;
+      }
+
+      previous = [x, y];
     }
     // Always include the endpoints, so that animations look smoother
-    vertex(this.interval[1], this.f(this.interval[1]));
+    if (!previousOffScreen) {
+      vertex(this.interval[1], this.f(this.interval[1]));
+    }
 
     endShape();
 
