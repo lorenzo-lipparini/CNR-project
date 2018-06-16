@@ -13,7 +13,7 @@ let globalAnimations: PlayingAnimation<any, any>[] = [];
  * @param target The object to animate
  * @param animation The animation to play on the object
  */
-export function animate<T, U extends keyof T>(target: T, animation: Animation<T, U>): Promise<void> {
+export function animate<T, K extends keyof T>(target: T, animation: Animation<T, K>): Promise<void> {
   return new Promise(resolve => {
     globalAnimations.push(new PlayingAnimation(target, animation, resolve));
   });

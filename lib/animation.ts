@@ -5,7 +5,7 @@ import videoSpecs from './videoSpecs.js';
 /**
  * Represents an animation which is currently playing on an object.
  */
-export class PlayingAnimation<T, U extends keyof T> {
+export class PlayingAnimation<T, K extends keyof T> {
   
   /**
    * The frame when the animation started, set when the instance is created.
@@ -17,7 +17,7 @@ export class PlayingAnimation<T, U extends keyof T> {
    */
   private readonly frameDuration: number;
 
-  private readonly updateTarget: UpdateFunction<T, U>;
+  private readonly updateTarget: UpdateFunction<T, K>;
 
   /**
    * Sorted array of the key progress values of the animation.
@@ -31,7 +31,7 @@ export class PlayingAnimation<T, U extends keyof T> {
   /**
    * Stores the initial values of the animated properties (only those in the pickedValues list of the animation).
    */
-  private readonly initialValues: Pick<T, U>;
+  private readonly initialValues: Pick<T, K>;
 
 
   /**
@@ -39,11 +39,11 @@ export class PlayingAnimation<T, U extends keyof T> {
    * @param animation The animation to play on the object
    * @param callback Function called when the animation finishes
    */
-  public constructor(public readonly target: T, animation: Animation<T, U>, public readonly callback: () => void) {
+  public constructor(public readonly target: T, animation: Animation<T, K>, public readonly callback: () => void) {
     this.beginFrame = frameCount;
     
     // Instead of copying the entire object, only take the values in the pickedValues list of the animation
-    this.initialValues = {} as Pick<T, U>;
+    this.initialValues = {} as Pick<T, K>;
     for (const property of animation.pickedProperties) {
       const value = target[property];
 
@@ -97,12 +97,12 @@ export class PlayingAnimation<T, U extends keyof T> {
  * @param progress Progress value of the animation (in the range [0, 1])
  * @param initialValues Initial conditions of the animation
  */
-type UpdateFunction<T, U extends keyof T> = (target: T, progress: number, initialValues: Pick<T, U>) => void;
+type UpdateFunction<T, K extends keyof T> = (target: T, progress: number, initialValues: Pick<T, K>) => void;
 
 /**
  * Represents an animation that acts on an object of the given type.
  */
-export class Animation<T, U extends keyof T> {
+export class Animation<T, K extends keyof T> {
 
   /**
    * List of all the progress value corresponding to frames when updateTarget MUST be called;
@@ -118,7 +118,7 @@ export class Animation<T, U extends keyof T> {
    * @param updateTarget The function which updates the target at each frame
    * @param pickedProperties List of the properties whose initial value is passed to updateTarget
    */
-  public constructor(public readonly duration: number, public readonly updateTarget: UpdateFunction<T, U>, public readonly pickedProperties: U[] = []) { }
+  public constructor(public readonly duration: number, public readonly updateTarget: UpdateFunction<T, K>, public readonly pickedProperties: K[] = []) { }
 
   /**
    * Combines the animation to another animation, returning a new one which is equivalent to
@@ -129,13 +129,13 @@ export class Animation<T, U extends keyof T> {
    * 
    * @returns The resulting animation
    */
-  public concat<V extends keyof T>(animation: Animation<T, V>): Animation<T, U | V> {
+  public concat<K2 extends keyof T>(animation: Animation<T, K2>): Animation<T, K | K2> {
     
     // The progress value which corresponds to the instant when the first animation stops and the second one begins
     // Used to make sure that the progress value passed as parameter ranges from 0 to 1 for both animations
     const animationChange = this.duration / (this.duration + animation.duration);
 
-    const result = new Animation<T, U | V>(this.duration + animation.duration, (target, progress, initialValues) => {
+    const result = new Animation<T, K | K2>(this.duration + animation.duration, (target, progress, initialValues) => {
       if (progress <= animationChange) {
         this.updateTarget(target, progress / animationChange, initialValues);
       } else {
@@ -166,17 +166,17 @@ export class Animation<T, U extends keyof T> {
    * 
    * @returns The resulting animation
    */
-  public parallel<V extends keyof T>(animation: Animation<T, V>): Animation<T, U | V> {
+  public parallel<K2 extends keyof T>(animation: Animation<T, K2>): Animation<T, K | K2> {
     
     const newDuration = Math.max(this.duration, animation.duration);
 
-    const shortest: Animation<T, U | V> = (this.duration < animation.duration) ? this : animation;
-    const longest: Animation<T, U | V> = (this.duration >= animation.duration) ? this : animation;
+    const shortest: Animation<T, K | K2> = (this.duration < animation.duration) ? this : animation;
+    const longest: Animation<T, K | K2> = (this.duration >= animation.duration) ? this : animation;
 
     // The progress value corresponding to the frame when the shortest animation stops
     const shortestEnd = shortest.duration / newDuration;
 
-    const result = new Animation<T, U | V>(newDuration, (target, progress, initialValues) => {
+    const result = new Animation<T, K | K2>(newDuration, (target, progress, initialValues) => {
       // The shortest animation plays in the interval [0, shortestEnd]
       if (progress <= shortestEnd) {
         shortest.updateTarget(target, progress / shortestEnd, initialValues);
@@ -206,7 +206,7 @@ export class Animation<T, U extends keyof T> {
    * 
    * @param transform Trasform which takes the original progress and maps it to a new value
    */
-  public timeTrasform(transform: (progress: number) => number): Animation<T, U> {
+  public timeTrasform(transform: (progress: number) => number): Animation<T, K> {
     return new Animation(this.duration, (target, progress, initialValues) => {
       this.updateTarget(target, transform(progress), initialValues);
     }, this.pickedProperties);
@@ -216,7 +216,7 @@ export class Animation<T, U extends keyof T> {
    * Creates a harmonic version of the current animation;
    * In the simplest case, when used on a linear animation, it returns a harmonic animation.
    */
-  public harmonize(): Animation<T, U> {
+  public harmonize(): Animation<T, K> {
     return this.timeTrasform(progress => (1/2 * (1 + Math.sin(Math.PI * (progress - 1/2)))));
   }
 
@@ -225,14 +225,14 @@ export class Animation<T, U extends keyof T> {
 /**
  * Represents an animation that acts on a single property of an object.
  */
-export class PropertyAnimation<T, U extends keyof T> extends Animation<T, U> {
+export class PropertyAnimation<T, K extends keyof T> extends Animation<T, K> {
 
   /**
    * @param property The property of the target to animate
    * @param duration The duration of the animation (in seconds)
    * @param valueFunction The value of the animated property, expressed as a function of time and initial value of the property
    */
-  public constructor(property: U, duration: number, valueFunction: (progress: number, initialValue: T[U]) => T[U]) {
+  public constructor(property: K, duration: number, valueFunction: (progress: number, initialValue: T[K]) => T[K]) {
   
     super(duration, (target, progress, initialValues) => {
       target[property] = valueFunction(progress, initialValues[property]);
@@ -244,15 +244,15 @@ export class PropertyAnimation<T, U extends keyof T> extends Animation<T, U> {
 
 
 // A linear animation can only act on numbers or vectors, this interface is used to express that restriction
-type HasAnimatable<U extends string> = {
-  [K in U]: number | number[];
+type HasAnimatable<K extends string> = {
+  [P in K]: number | number[];
 };
 
 /**
  * Used to create animations which can act on numbers or number arrays,
  * given only the initial conditions and the final values.
  */
-const createNumericAnimation = (numberValueFunction: (progress: number, initialValue: number, finalValue: number) => number) => class <T extends HasAnimatable<U>, U extends keyof T> extends PropertyAnimation<T, U> {
+const createNumericAnimation = (numberValueFunction: (progress: number, initialValue: number, finalValue: number) => number) => class <T extends HasAnimatable<K>, K extends keyof T> extends PropertyAnimation<T, K> {
 
   /**
    * @param property The property of the target to animate
@@ -260,14 +260,14 @@ const createNumericAnimation = (numberValueFunction: (progress: number, initialV
    * @param initialValue The value set to the property at the beginning of the animation
    * @param finalValue The value that the property will have at the end of the animation
    */
-  public constructor(property: U, duration: number, initialValue: T[U], finalValue: T[U]);
+  public constructor(property: K, duration: number, initialValue: T[K], finalValue: T[K]);
   /**
    * @param property The property of the target to animate
    * @param duration The duration of the animation (in seconds)
    * @param finalValue The value that the property will have at the end of the animation
    */
-  public constructor(property: U, duration: number, finalValue: T[U]);
-  public constructor(property: U, duration: number, firstValue: T[U], secondValue?: T[U]) {
+  public constructor(property: K, duration: number, finalValue: T[K]);
+  public constructor(property: K, duration: number, firstValue: T[K], secondValue?: T[K]) {
     // TODO: find a way to be more type safe
     // Unfortunately, type guards don't restrict the type inside closures
 
