@@ -36,6 +36,38 @@ export default class View extends Animatable {
   }
 
   /**
+   * Smoothly moves the camera to the given position without changing the zoom.
+   * 
+   * @param duration Duration of the animation (in seconds)
+   * @param zoomCenter Point to move the camera to
+   */
+  public moveTo(duration: number, zoomCenter: [number, number]): Promise<void> {
+    return this.animate(new HarmonicAnimation<View, 'zoomCenter'>('zoomCenter', duration, zoomCenter));
+  }
+
+  /**
+   * Smoothly moves the camera by some amount without changing the zoom.
+   * 
+   * @param duration Duration of the animation (in seconds)
+   * @param amount Vector along which the camera should be moved
+   */
+  public moveBy(duration: number, amount: [number, number]): Promise<void> {
+    return this.moveTo(duration, [this.zoomCenter[0] + amount[0], this.zoomCenter[1] + amount[1]]);
+  }
+
+  /**
+   * Smoothly changes the zoomFactor without altering the position of the camera.
+   * 
+   * @param duration Duration of the animation (in seconds)
+   * @param zoomFactor Determines the final zoom value (see zoomMode)
+   */
+  public zoom(duration: number, zoomFactor: number): Promise<void> {
+    zoomFactor = this.toAbsolute(zoomFactor);
+  
+    return this.animate(new ExponentialAnimation<View, 'zoomFactor'>('zoomFactor', duration, zoomFactor * this.zoomFactor).harmonize());
+  }
+
+  /**
    * Smoothly moves the camera from the current position to the given one while changing the zoom.
    * 
    * @param duration Duration of the animation (in seconds)
@@ -43,6 +75,10 @@ export default class View extends Animatable {
    * @param zoomFactor Determines the final zoom value (see zoomMode)
    */
   public zoomToPoint(duration: number, zoomCenter: [number, number], zoomFactor: number): Promise<void> {
+    // This limiting case breaks the formula, so use a fast path
+    if (this.toAbsolute(zoomFactor) === this.zoomFactor) {
+      return this.moveTo(duration, zoomCenter);
+    }
 
     zoomFactor = this.toAbsolute(zoomFactor);
 
