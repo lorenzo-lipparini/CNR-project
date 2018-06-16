@@ -23,15 +23,15 @@ async function main() {
   
   await timer(1);
 
-  await navigator.jumpTo(10, [0.404518, -0.33899], 6);
+  await navigator.jumpToPoint(10, [0.404518, -0.33899], 6);
 
   await timer(1);
 
-  await navigator.jumpTo(8, [0.27348958333333334, 0.0059375], 1024);
+  await navigator.jumpToPoint(8, [0.27348958333333334, 0.0059375], 1024);
 
   await timer(1);
 
-  await navigator.jumpTo(15, [-0.7432918054284826, 0.13124097828468356], 7400);
+  await navigator.jumpToPoint(15, [-0.7432918054284826, 0.13124097828468356], 7400);
 
   await timer(1);
 

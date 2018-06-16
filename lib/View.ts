@@ -8,29 +8,44 @@ import { PropertyAnimation, HarmonicAnimation, ExponentialAnimation, Animatable 
  */
 export default class View extends Animatable {
 
+  /**
+   * Decides whether the zoomFactor parameter of zoom(), zoomToPoint() and jumpToPoint()
+   * is considered to be relative to the current zoomFactor or not.
+   */
+  public zoomMode: 'absolute' | 'relative' = 'relative';
+
   public zoomCenter: [number, number] = [0, 0];
   public zoomFactor: number = 1;
 
 
   /**
    * Transforms the coordinate space according to zoomCenter and zoomFactor;
-   * To be called at the beginning of draw() after setting the background.
+   * The origin of the frame of reference will correspond to the center of the canvas,
+   * the x-axis will point right and the y-axis will point up;
+   * To be called at the beginning of draw after setting the background before any other transformation.
    */
   public apply(): void {
     this.updateAnimations();
 
-    translate(-this.zoomCenter[0], -this.zoomCenter[1]);
+    // Center the camera and change the direction of the axes
+    translate(width/2, height/2);
+    scale(1, -1);
+
     scale(this.zoomFactor);
+    translate(-this.zoomCenter[0], -this.zoomCenter[1]);
   }
 
   /**
-   * Smoothly zooms from the current position to the given one while adjusting the zoom.
+   * Smoothly moves the camera from the current position to the given one while changing the zoom.
    * 
    * @param duration Duration of the animation (in seconds)
    * @param zoomCenter Point to zoom on
-   * @param zoomFactor Positive number which tells how much to zoom on the point
+   * @param zoomFactor Determines the final zoom value (see zoomMode)
    */
-  public zoomTo(duration: number, zoomCenter: [number, number], zoomFactor: number): Promise<void> {
+  public zoomToPoint(duration: number, zoomCenter: [number, number], zoomFactor: number): Promise<void> {
+
+    zoomFactor = this.toAbsolute(zoomFactor);
+
     const zoomAnimation = this.makeTranslateAnimation(duration, zoomCenter, zoomFactor)
                 .parallel(new ExponentialAnimation<View, 'zoomFactor'>('zoomFactor', duration, zoomFactor))
                 .harmonize();
@@ -39,20 +54,33 @@ export default class View extends Animatable {
   }
 
   /**
-   * Creates a zoom animation where the camera zooms out until it shows both the points
-   * and then zooms on the target, all that while moving to the new position.
+   * Plays an animation where the camera zooms out until it shows both the points
+   * and then zooms into the target, all that while moving to the new position.
    * 
    * @param duration Duration of the animation (in seconds)
    * @param zoomCenter Point to zoom on
-   * @param zoomFactor Positive number which tells how much to zoom on the point
+   * @param zoomFactor Determines the final zoom value (see zoomMode)
    */
-  public async jumpTo(duration: number, zoomCenter: [number, number], zoomFactor: number): Promise<void> {
+  public async jumpToPoint(duration: number, zoomCenter: [number, number], zoomFactor: number): Promise<void> {
+    zoomFactor = this.toAbsolute(zoomFactor);   
+
     const [intermediateZoomCenter, intermediateZoomFactor] = this.calculateIntermediateZoomValues(zoomCenter, zoomFactor);
     // Instant in time when the zoom changes direction
     const change = duration * Math.log(intermediateZoomFactor / this.zoomFactor) / Math.log(intermediateZoomFactor * intermediateZoomFactor / (this.zoomFactor * zoomFactor));
 
-    await this.zoomTo(change, intermediateZoomCenter, intermediateZoomFactor);
-    await this.zoomTo(duration - change, zoomCenter, zoomFactor);
+    await this.zoomToPoint(change, intermediateZoomCenter, intermediateZoomFactor);
+    await this.zoomToPoint(duration - change, zoomCenter, zoomFactor);
+  }
+
+
+  /**
+   * Takes a zoomFactor which might be relative and returns the corresponding non-relative value;
+   * The result is based on the current zoomMode.
+   * 
+   * @param zoomFactor The value to convert
+   */
+  private toAbsolute(zoomFactor: number): number {
+    return (this.zoomMode === 'relative') ? zoomFactor * this.zoomFactor : zoomFactor;
   }
 
   private makeTranslateAnimation(duration: number, z_b: [number, number], f_b: number): PropertyAnimation<View, 'zoomCenter'> {

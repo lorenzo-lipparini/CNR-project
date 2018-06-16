@@ -22,7 +22,7 @@ window.setup = async () => {
 };
 
 async function main() {
-  await navigator.zoomTo(20, [0.3512238, 0.4245845], 8000);
+  await navigator.zoomToPoint(20, [0.3512238, 0.4245845], 8000);
 }
 
 window.draw = () => {

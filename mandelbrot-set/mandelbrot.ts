@@ -88,6 +88,10 @@ export class MandelbrotRenderer {
  */
 export class MandelbrotNavigator extends View {
 
+  // Override the default zoomMode
+  public zoomMode: 'absolute' | 'relative' = 'absolute';
+
+
   /**
    * @param renderer The renderer used to display the Mandelbrot set
    */
