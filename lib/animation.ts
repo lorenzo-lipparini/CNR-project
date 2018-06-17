@@ -210,13 +210,20 @@ export class Animation<T, K extends keyof T> {
    * changed as indicated by the transform.
    * 
    * @param transform Trasform which takes the original progress and maps it to a new value
+   * @param inverseTransform Inverse function of the transform, required to calculate the keyProgressValues of the new animation
+   * 
+   * @returns The resulting animation
    */
-  public timeTrasform(transform: (progress: number) => number): Animation<T, K> {
-    return new Animation(this.duration, initialValues => {
+  public timeTrasform(transform: (progress: number) => number, inverseTransform: (progress: number) => number): Animation<T, K> {
+    const result = new Animation<T, K>(this.duration, initialValues => {
       const updateTarget = this.makeUpdateTarget(initialValues);
 
       return (target, progress) => updateTarget(target, transform(progress));
     }, this.pickedProperties);
+
+    result.keyProgressValues = this.keyProgressValues.map(inverseTransform);
+
+    return result;
   }
 
   /**
@@ -224,7 +231,10 @@ export class Animation<T, K extends keyof T> {
    * In the simplest case, when used on a linear animation, it returns a harmonic animation.
    */
   public harmonize(): Animation<T, K> {
-    return this.timeTrasform(progress => (1/2 * (1 + Math.sin(Math.PI * (progress - 1/2)))));
+    return this.timeTrasform(
+      t => (1/2 * (1 + Math.sin(Math.PI * (t - 1/2)))),
+      t => 1/2 + Math.asin(2*t - 1) / Math.PI
+    );
   }
 
 }
