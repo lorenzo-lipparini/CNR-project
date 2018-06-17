@@ -172,7 +172,7 @@ export default class KochCurve extends Animatable {
     
     // 1-iteration animations just refer to the current object
     if (iteration === 1) {
-      return (<KochCurve> this).animate(animation);
+      return this.animate(animation);
     }
 
     let returnPromise: Promise<void> = Promise.resolve();

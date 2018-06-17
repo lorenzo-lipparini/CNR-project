@@ -244,7 +244,7 @@ export class PropertyAnimation<T, K extends keyof T> extends Animation<T, K> {
 
 
 // A linear animation can only act on numbers or vectors, this interface is used to express that restriction
-type HasAnimatable<K extends string> = {
+type HasAnimatable<K extends string | number | symbol> = {
   [P in K]: number | number[];
 };
 
@@ -252,7 +252,7 @@ type HasAnimatable<K extends string> = {
  * Used to create animations which can act on numbers or number arrays,
  * given only the initial conditions and the final values.
  */
-const createNumericAnimation = (numberValueFunction: (progress: number, initialValue: number, finalValue: number) => number) => class <T extends HasAnimatable<K>, K extends keyof T> extends PropertyAnimation<T, K> {
+const createNumericAnimation = (numberValueFunction: (progress: number, initialValue: number, finalValue: number) => number) => class <T extends HasAnimatable<K>, K extends keyof T> extends Animation<T, K> {
 
   /**
    * @param property The property of the target to animate
@@ -264,35 +264,56 @@ const createNumericAnimation = (numberValueFunction: (progress: number, initialV
   /**
    * @param property The property of the target to animate
    * @param duration The duration of the animation (in seconds)
-   * @param finalValue The value that the property will have at the end of the animation
+   * @param finalValue The value that the property will have at the end of the animation, may be expressed as a function of the initial value
    */
-  public constructor(property: K, duration: number, finalValue: T[K]);
-  public constructor(property: K, duration: number, firstValue: T[K], secondValue?: T[K]) {
-    // TODO: find a way to be more type safe
-    // Unfortunately, type guards don't restrict the type inside closures
+  public constructor(property: K, duration: number, finalValue: T[K] | ((initialValue: T[K]) => T[K]));
+  public constructor(property: K, duration: number, firstValue: T[K] | ((initialValue: T[K]) => T[K]), secondValue?: T[K]) {
 
-    let valueFunction: (progress: number, initialValue: any) => any;
+    // Express the values as functions:
+    // The initial value might be explicit, or it might equal the value of the property at the beginning of the animation
+    let getInitialValue: (initialValue: T[K]) => T[K];
+    // The final value might be explicit, or it might depend on the value of the property at the beginning of the animation
+    let getFinalValue: (initialValue: T[K]) => T[K];
 
-    if (secondValue === undefined) {
-      const finalValue = firstValue;
+    if (secondValue !== undefined) { // First overload
+      // The initial value is expicit
+      getInitialValue = () => firstValue as T[K];
 
-      if (typeof finalValue === 'number') {
-        valueFunction = (progress, initialValue) => numberValueFunction(progress, initialValue, finalValue);
-      } else { // finalValue: number[]
-        valueFunction = (progress: number, initialValue: number[]) => initialValue.map((value, i) => numberValueFunction(progress, value, (finalValue as number[])[i]));
+      // The final value is also explicit
+
+      // Make a shallow copy of arrays to avoid common mistakes
+      if (secondValue instanceof Array) {
+        secondValue = secondValue.slice();
       }
-    } else {
-      const initialValue = firstValue;
-      const finalValue = secondValue;
+      getFinalValue = () => secondValue!;
+    } else { // Second overload
+      // The initial value equals the value of the property at the beginning of the animation
+      getInitialValue = initialValue => initialValue;
 
-      if (typeof finalValue === 'number') {
-        valueFunction = (progress: number) => numberValueFunction(progress, initialValue as number, finalValue);
-      } else { // finalValue: number[]
-        valueFunction = (progress: number) => (initialValue as number[]).map((value, i) => numberValueFunction(progress, value, (finalValue as number[])[i]));
-      }
+      // The final value might be explicit or implicit
+      getFinalValue = (typeof firstValue === 'function') ? firstValue : () => firstValue;
     }
 
-    super(property, duration, valueFunction);
+    let initialValue: T[K];
+    let finalValue: T[K];
+    super(duration, (target, progress, initialValues) => {
+      // Cache initialValue and finalValue to avoid multiple calls to getFinalValue
+      if (initialValue === undefined) {
+        initialValue = getInitialValue(initialValues[property] as T[K]);
+        finalValue = getFinalValue(initialValue);
+      }
+
+      if (typeof initialValue === 'number') { // initialValue: number; finalValue: number
+        target[property] = numberValueFunction(progress, initialValue, finalValue as number);
+      } else { // initialValue: number[]; finalValue: number[]
+        const v = target[property] as number[];
+
+        for (let i = 0; i < v.length; i++) {
+          v[i] = numberValueFunction(progress, (initialValue as number[])[i], (finalValue as number[])[i]);
+        }
+      }
+    }, [property]);
+
   }
 
 }
