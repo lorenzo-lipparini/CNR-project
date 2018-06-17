@@ -3,6 +3,15 @@ import videoSpecs from './videoSpecs.js';
 
 
 /**
+ * Function used by animations to update a property of an object.
+ * 
+ * @param target The object to update
+ * @param progress Progress value of the animation (in the range [0, 1])
+ * @param initialValues Initial conditions of the animation
+ */
+type UpdateFunction<T> = (target: T, progress: number) => void;
+
+/**
  * Represents an animation which is currently playing on an object.
  */
 export class PlayingAnimation<T, K extends keyof T> {
@@ -17,7 +26,7 @@ export class PlayingAnimation<T, K extends keyof T> {
    */
   private readonly frameDuration: number;
 
-  private readonly updateTarget: UpdateFunction<T, K>;
+  private readonly updateTarget: UpdateFunction<T>;
 
   /**
    * Sorted array of the key progress values of the animation.
@@ -27,11 +36,6 @@ export class PlayingAnimation<T, K extends keyof T> {
    * Index of the key progress value which will be reached next.
    */
   private nextValueIndex: number = 0;
-
-  /**
-   * Stores the initial values of the animated properties (only those in the pickedValues list of the animation).
-   */
-  private readonly initialValues: Pick<T, K>;
 
 
   /**
@@ -43,22 +47,22 @@ export class PlayingAnimation<T, K extends keyof T> {
     this.beginFrame = frameCount;
     
     // Instead of copying the entire object, only take the values in the pickedValues list of the animation
-    this.initialValues = {} as Pick<T, K>;
+    const initialValues = {} as Pick<T, K>;
     for (const property of animation.pickedProperties) {
       const value = target[property];
 
       if (value instanceof Array) {
         // Shallow copy arrays for vector animations
-        this.initialValues[property] = value.slice() as any;
+        initialValues[property] = value.slice() as any;
       } else {
-        this.initialValues[property] = value;
+        initialValues[property] = value;
       }
     }
     
     // Convert the duration from seconds to frames
     this.frameDuration = Math.floor(animation.duration * videoSpecs.frameRate);
     
-    this.updateTarget = animation.updateTarget;
+    this.updateTarget = animation.makeUpdateTarget(initialValues);
     
     this.keyProgressValues = animation.keyProgressValues.sort();
   }
@@ -73,7 +77,7 @@ export class PlayingAnimation<T, K extends keyof T> {
     
     if (progress >= this.keyProgressValues[this.nextValueIndex]) { // If the animation has reached a key frame
       // Run that exact frame
-      this.updateTarget(this.target, this.keyProgressValues[this.nextValueIndex], this.initialValues);
+      this.updateTarget(this.target, this.keyProgressValues[this.nextValueIndex]);
 
       if (progress >= 1) { // If the animation has finished
         this.callback();
@@ -84,20 +88,11 @@ export class PlayingAnimation<T, K extends keyof T> {
       this.nextValueIndex++;
     }
 
-    this.updateTarget(this.target, progress, this.initialValues);
+    this.updateTarget(this.target, progress);
     return false;
   }
 
 }
-
-/**
- * Function used by animations to update a property of an object.
- * 
- * @param target The object to update
- * @param progress Progress value of the animation (in the range [0, 1])
- * @param initialValues Initial conditions of the animation
- */
-type UpdateFunction<T, K extends keyof T> = (target: T, progress: number, initialValues: Pick<T, K>) => void;
 
 /**
  * Represents an animation that acts on an object of the given type.
@@ -115,10 +110,10 @@ export class Animation<T, K extends keyof T> {
 
   /**
    * @param duration The duration of the animation (in seconds)
-   * @param updateTarget The function which updates the target at each frame
-   * @param pickedProperties List of the properties whose initial value is passed to updateTarget
+   * @param makeUpdateTarget A closure that takes an object containing the initial values and returns the function which updates the target at each frame
+   * @param pickedProperties List of the properties whose initial value is passed to makeUpdateTarget
    */
-  public constructor(public readonly duration: number, public readonly updateTarget: UpdateFunction<T, K>, public readonly pickedProperties: K[] = []) { }
+  public constructor(public readonly duration: number, public readonly makeUpdateTarget: ((initialValues: Pick<T, K>) => UpdateFunction<T>), public readonly pickedProperties: K[] = []) { }
 
   /**
    * Combines the animation to another animation, returning a new one which is equivalent to
@@ -135,12 +130,17 @@ export class Animation<T, K extends keyof T> {
     // Used to make sure that the progress value passed as parameter ranges from 0 to 1 for both animations
     const animationChange = this.duration / (this.duration + animation.duration);
 
-    const result = new Animation<T, K | K2>(this.duration + animation.duration, (target, progress, initialValues) => {
-      if (progress <= animationChange) {
-        this.updateTarget(target, progress / animationChange, initialValues);
-      } else {
-        animation.updateTarget(target, (progress - animationChange) / (1 - animationChange), initialValues);
-      }
+    const result = new Animation<T, K | K2>(this.duration + animation.duration, initialValues => {
+      const firstUpdateTarget = this.makeUpdateTarget(initialValues);
+      const secondUpdateTarget = animation.makeUpdateTarget(initialValues);
+
+      return (target, progress) => {
+        if (progress <= animationChange) {
+          firstUpdateTarget(target, progress / animationChange);
+        } else {
+          secondUpdateTarget(target, (progress - animationChange) / (1 - animationChange));
+        }
+      };
     }, [...this.pickedProperties, ...animation.pickedProperties]); // Composed animations need all the initial values required by the original ones
 
 
@@ -176,14 +176,19 @@ export class Animation<T, K extends keyof T> {
     // The progress value corresponding to the frame when the shortest animation stops
     const shortestEnd = shortest.duration / newDuration;
 
-    const result = new Animation<T, K | K2>(newDuration, (target, progress, initialValues) => {
-      // The shortest animation plays in the interval [0, shortestEnd]
-      if (progress <= shortestEnd) {
-        shortest.updateTarget(target, progress / shortestEnd, initialValues);
-      }
+    const result = new Animation<T, K | K2>(newDuration, initialValues => {
+      const shortestUpdateTarget = shortest.makeUpdateTarget(initialValues);
+      const longestUpdateTarget = longest.makeUpdateTarget(initialValues);
 
-      // The longest one plays from the start to the end
-      longest.updateTarget(target, progress, initialValues);
+      return (target, progress) => {
+        // The shortest animation plays in the interval [0, shortestEnd]
+        if (progress <= shortestEnd) {
+          shortestUpdateTarget(target, progress / shortestEnd);
+        }
+
+        // The longest one plays from the start to the end
+        longestUpdateTarget(target, progress);
+      };
     }, [...this.pickedProperties, ...animation.pickedProperties]); // Composed animations need all the initial values required by the original ones
   
 
@@ -207,8 +212,10 @@ export class Animation<T, K extends keyof T> {
    * @param transform Trasform which takes the original progress and maps it to a new value
    */
   public timeTrasform(transform: (progress: number) => number): Animation<T, K> {
-    return new Animation(this.duration, (target, progress, initialValues) => {
-      this.updateTarget(target, transform(progress), initialValues);
+    return new Animation(this.duration, initialValues => {
+      const updateTarget = this.makeUpdateTarget(initialValues);
+
+      return (target, progress) => updateTarget(target, transform(progress));
     }, this.pickedProperties);
   }
 
@@ -234,8 +241,10 @@ export class PropertyAnimation<T, K extends keyof T> extends Animation<T, K> {
    */
   public constructor(property: K, duration: number, valueFunction: (progress: number, initialValue: T[K]) => T[K]) {
   
-    super(duration, (target, progress, initialValues) => {
-      target[property] = valueFunction(progress, initialValues[property]);
+    super(duration, initialValues => {
+      const initialValue = initialValues[property];
+
+      return (target, progress) => target[property] = valueFunction(progress, initialValue);
     }, [property]); // valueFunction depends on the initial value of the animated property, so add it to the list of picked values
   
   }
@@ -294,23 +303,20 @@ const createNumericAnimation = (numberValueFunction: (progress: number, initialV
       getFinalValue = (typeof firstValue === 'function') ? firstValue : () => firstValue;
     }
 
-    let initialValue: T[K];
-    let finalValue: T[K];
-    super(duration, (target, progress, initialValues) => {
-      // Cache initialValue and finalValue to avoid multiple calls to getFinalValue
-      if (initialValue === undefined) {
-        initialValue = getInitialValue(initialValues[property] as T[K]);
-        finalValue = getFinalValue(initialValue);
-      }
+    super(duration, initialValues => {
+      const initialValue = getInitialValue(initialValues[property] as T[K]);
+      const finalValue = getFinalValue(initialValue);
 
       if (typeof initialValue === 'number') { // initialValue: number; finalValue: number
-        target[property] = numberValueFunction(progress, initialValue, finalValue as number);
+        return (target, progress) => target[property] = numberValueFunction(progress, initialValue, finalValue as number);
       } else { // initialValue: number[]; finalValue: number[]
-        const v = target[property] as number[];
+        return (target, progress) => {
+          const v = target[property] as number[];
 
-        for (let i = 0; i < v.length; i++) {
-          v[i] = numberValueFunction(progress, (initialValue as number[])[i], (finalValue as number[])[i]);
-        }
+          for (let i = 0; i < v.length; i++) {
+            v[i] = numberValueFunction(progress, (initialValue as number[])[i], (finalValue as number[])[i]);
+          }
+        };
       }
     }, [property]);
 
