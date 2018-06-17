@@ -35,43 +35,37 @@ async function main() {
 
     const scaleDown = new LinearAnimation<Cube, 'side'>('side', 1.5, 0);
 
-    const flashWithColor = (clr: number[]) => new PropertyAnimation<Cube, 'color'>('color', 3, (progress, initialColor) =>
-      progress <= 0.25 ? clr          :
+    const flashWithColor = (flashColor: number[]) => new PropertyAnimation<Cube, 'color'>('color', 3,
+    (progress, initialColor) =>
+      progress <= 0.25 ? flashColor   :
       progress <= 0.50 ? initialColor :
-      progress <= 0.75 ? clr          :
-                         initialColor
+      progress <= 0.75 ? flashColor   :
+      initialColor
     );
 
-    const flashColor = lerpColor(color(mengerSponge.color), color('white'), 0.2);
-    const cubeAnimation = flashWithColor([red(flashColor), green(flashColor), blue(flashColor)])
-                  .concat(scaleDown);
+    const lightenFactor = 0.2;
+    const flashColor = mengerSponge.color.map(x => lightenFactor * 255 + (1 - lightenFactor) * x);
 
+    const darkenFactor = 5;
+    function darken(color: number[]) {
+      return color.map(x => x / darkenFactor);
+    }
 
-    // TODO: Find a better way to darken colors
-    const fadeRatio = 5;
-
-    const outOfFocusSpongeColor = mengerSponge.color.map(value => value / fadeRatio);
-    const fadeOutAnimation = new LinearAnimation<MengerSponge, 'color'>('color', 3, outOfFocusSpongeColor);
-
-    const outOfFocusFlashColor = [red(flashColor), green(flashColor), blue(flashColor)].map(value => value / fadeRatio);
-    const outOfFocusCubeAnimation = flashWithColor(outOfFocusFlashColor)
-                            .concat(scaleDown);
-    
-
+    const fadeOutAnimation = new LinearAnimation<MengerSponge, 'color'>('color', 3, darken);
     
     if (fatherSponge !== undefined) {
-      for (let sponge of fatherSponge.childSponges.filter(sponge => sponge !== zoomedSponge)) {
-        sponge.animateExcludedCubes(1, outOfFocusCubeAnimation);
+      for (const sponge of fatherSponge.childSponges.filter(sponge => sponge !== zoomedSponge)) {
+        sponge.animateExcludedCubes(1, flashWithColor(darken(flashColor)).concat(scaleDown));
       }
     }
 
-    await zoomedSponge.animateExcludedCubes(1, cubeAnimation);
+    await zoomedSponge.animateExcludedCubes(1, flashWithColor(flashColor).concat(scaleDown));
 
 
     fatherSponge = zoomedSponge;
     zoomedSponge = fatherSponge.childSponges[2];
 
-    
+
     for (const sponge of fatherSponge.childSponges.filter(sponge => sponge !== zoomedSponge)) {
       sponge.animate(fadeOutAnimation);
     }

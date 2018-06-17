@@ -77,7 +77,7 @@ export default class MengerSponge extends Cube {
     // The color is also set by the Cube constructor, before the childSponges array is even initialized, so make sure that it has been created
     if (this.iterations !== 0 && this.childSponges !== undefined) {
       for (const sponge of this.childSponges) {
-        sponge.color = this._color;
+        sponge.color = this.color.slice();
       }
     }
   }
@@ -93,13 +93,13 @@ export default class MengerSponge extends Cube {
 
     // Helper functions for creating new sponges and cubes
     const addChildSponge = (relativePosX: number, relativePosY: number, relativePosZ: number) => {
-      const newSponge = new MengerSponge([this.pos[0] + relativePosX, this.pos[1] + relativePosY, this.pos[2] + relativePosZ], childSide, this.color, this.iterations - 1);
+      const newSponge = new MengerSponge([this.pos[0] + relativePosX, this.pos[1] + relativePosY, this.pos[2] + relativePosZ], childSide, this.color.slice(), this.iterations - 1);
       newSponge.showExcludedCubes = this.showExcludedCubes;
       
       this.childSponges.push(newSponge);
     };
     const addExcludedCube = (relativePosX: number, relativePosY: number, relativePosZ: number) => {
-      this.excludedCubes.push(new Cube([this.pos[0] + relativePosX, this.pos[1] + relativePosY, this.pos[2] + relativePosZ], childSide, this.color));
+      this.excludedCubes.push(new Cube([this.pos[0] + relativePosX, this.pos[1] + relativePosY, this.pos[2] + relativePosZ], childSide, this.color.slice()));
     };
 
     for (let x = -childSide; x <= childSide; x += childSide) {
