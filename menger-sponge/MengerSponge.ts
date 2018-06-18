@@ -12,7 +12,7 @@ export default class MengerSponge extends Cube {
   public childSponges: MengerSponge[] = [];
   public excludedCubes: Cube[] = [];
 
-  private _color: number[] = [];
+  private _color!: number[];
   private _showExcludedCubes: boolean = false;
 
 
@@ -29,10 +29,8 @@ export default class MengerSponge extends Cube {
 
     // 0-iterations Menger sponges are just cubes, so they have no child elements
     if (this.iterations !== 0) {
-      
       // Recursive part of the fractal
       this.createChildElements();
-
     }
 
     this.showExcludedCubes = false;
