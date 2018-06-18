@@ -1,28 +1,32 @@
 
 import videoSpecs from '../../lib/videoSpecs.js';
 import FrameCapture from '../../lib/FrameCapture.js';
-import timer from '../../lib/timer.js';
 import { PropertyAnimation, LinearAnimation, HarmonicAnimation, animate, updateAnimations } from '../../lib/animation.js';
+import timer from '../../lib/timer.js';
+import Scene from '../../lib/Scene.js';
 
 import Cube from '../Cube.js';
 import MengerSponge from '../MengerSponge.js';
 
 
-let mengerSponge: MengerSponge;
+const scene = new Scene();
 
 
-window.setup = () => {
+window.setup = async () => {
   createCanvas(videoSpecs.resolution.x, videoSpecs.resolution.y, WEBGL);
 
-  mengerSponge = new MengerSponge([0, 0, 0], height / 2, [50, 100, 255], 0);
-
-  main();
-
   FrameCapture.acquire();
+
+  await main();
+
+  FrameCapture.stop();
 };
 
 async function main() {
+  const mengerSponge = new MengerSponge([0, 0, 0], height / 2, [50, 100, 255], 0);
+  scene.add(mengerSponge);
 
+  mengerSponge.colorMode = 'value';
   mengerSponge.showExcludedCubes = true;
 
   let fatherSponge: MengerSponge | undefined = undefined;
@@ -43,8 +47,7 @@ async function main() {
       initialColor
     );
 
-    const lightenFactor = 0.2;
-    const flashColor = mengerSponge.color.map(x => lightenFactor * 255 + (1 - lightenFactor) * x);
+    const flashColor = [90, 130, 255];
 
     const darkenFactor = 5;
     function darken(color: number[]) {
@@ -71,14 +74,13 @@ async function main() {
     }
 
     const zoomAnimation = new HarmonicAnimation<typeof drawOptions, 'zoomPos'>('zoomPos', 3, zoomedSponge.pos)
-                .parallel(new HarmonicAnimation<typeof drawOptions, 'zoomFactor'>('zoomFactor', 3, 2.5 * drawOptions.zoomFactor));
+                .parallel(new HarmonicAnimation<typeof drawOptions, 'zoomFactor'>('zoomFactor', 3, x => 2.5 * x));
 
     await animate(drawOptions, zoomAnimation);
 
     fatherSponge.incrementIterations();
   }
 
-  FrameCapture.stop();
 }
 
 const drawOptions = {
@@ -103,8 +105,8 @@ window.draw = () => {
 
 
   noStroke();
-  
-  mengerSponge.show();
+
+  scene.render();
 
 
   FrameCapture.update();
