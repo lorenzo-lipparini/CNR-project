@@ -12,6 +12,8 @@ export default class MengerSponge extends Cube {
   public childSponges: MengerSponge[] = [];
   public excludedCubes: Cube[] = [];
 
+  private _colorMode!: 'value' | 'reference';
+
   private _color!: number[];
   private _showExcludedCubes: boolean = false;
 
@@ -34,7 +36,8 @@ export default class MengerSponge extends Cube {
     }
 
     this.showExcludedCubes = false;
-    this.color = color;
+    this._color = color;
+    this._colorMode = 'reference';
   }
 
   /**
@@ -45,7 +48,6 @@ export default class MengerSponge extends Cube {
   public get showExcludedCubes(): boolean {
     return this._showExcludedCubes;
   }
-
   public set showExcludedCubes(value: boolean) {
     // Prevent useless recursion
     if (value === this._showExcludedCubes) {
@@ -63,6 +65,26 @@ export default class MengerSponge extends Cube {
   }
 
   /**
+   * Decides whether the color is passed to the child sponges by value or by reference (default).
+   */
+  public get colorMode(): 'value' | 'reference' {
+    return this._colorMode;
+  }
+  public set colorMode(value: 'value' | 'reference') {
+    if (value === this._colorMode) {
+      return;
+    }
+
+    this._colorMode = value;
+
+    if (this.iterations !== 0) {
+      for (const mengerSponge of this.childSponges) {
+        mengerSponge.colorMode = this.colorMode;
+      }
+    }
+  }
+
+  /**
    * The color of the MengerSponge (doesn't affect the excluded cubes).
    */
   public get color(): number[] {
@@ -75,7 +97,7 @@ export default class MengerSponge extends Cube {
     // The color is also set by the Cube constructor, before the childSponges array is even initialized, so make sure that it has been created
     if (this.iterations !== 0 && this.childSponges !== undefined) {
       for (const sponge of this.childSponges) {
-        sponge.color = this.color.slice();
+        sponge.color = (this.colorMode === 'value') ? this.color.slice() : this.color;
       }
     }
   }
@@ -91,13 +113,14 @@ export default class MengerSponge extends Cube {
 
     // Helper functions for creating new sponges and cubes
     const addChildSponge = (relativePosX: number, relativePosY: number, relativePosZ: number) => {
-      const newSponge = new MengerSponge([this.pos[0] + relativePosX, this.pos[1] + relativePosY, this.pos[2] + relativePosZ], childSide, this.color.slice(), this.iterations - 1);
+      const newSponge = new MengerSponge([this.pos[0] + relativePosX, this.pos[1] + relativePosY, this.pos[2] + relativePosZ], childSide, (this.colorMode === 'value') ? this.color.slice() : this.color, this.iterations - 1);
       newSponge.showExcludedCubes = this.showExcludedCubes;
-      
+      newSponge._colorMode = this.colorMode;
+
       this.childSponges.push(newSponge);
     };
     const addExcludedCube = (relativePosX: number, relativePosY: number, relativePosZ: number) => {
-      this.excludedCubes.push(new Cube([this.pos[0] + relativePosX, this.pos[1] + relativePosY, this.pos[2] + relativePosZ], childSide, this.color.slice()));
+      this.excludedCubes.push(new Cube([this.pos[0] + relativePosX, this.pos[1] + relativePosY, this.pos[2] + relativePosZ], childSide, (this.colorMode === 'value') ? this.color.slice() : this.color));
     };
 
     for (let x = -childSide; x <= childSide; x += childSide) {
@@ -118,6 +141,7 @@ export default class MengerSponge extends Cube {
   }
 
   public show(): void {
+    this.updateAnimations();
 
     if (this.iterations === 0) {
       // 0-iterations Menger sponges are just cubes
