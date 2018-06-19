@@ -41,7 +41,7 @@ export default class Plane2D extends Animatable {
       rgb: [255, 255, 255],
       alpha: 25,
       strokeWeight: this.constantLength(5 * this.pixelLength),
-      dash: [this.constantLength(10 * this.pixelLength)]
+      dash: []
     });
   }
 
@@ -136,6 +136,8 @@ class XYAxes {
   public constructor(private readonly plane: Plane2D, public style: LineStyle) { }
 
   public show(): void {
+    updateAnimations(this.style);
+
     push();
 
     LineStyle.apply(this.style);
@@ -163,6 +165,15 @@ class XYAxes {
     }
 
     pop();
+  }
+
+  /**
+   * Plays an animation where the curve gradually fades in.
+   * 
+   * @param alpha The alpha value that the axes will have at the end of the animation.
+   */
+  public fadeIn(alpha = 100): Promise<void> {
+    return animate(this.style, new LinearAnimation<LineStyle, 'alpha'>('alpha', 2, 0, alpha));
   }
 
 }
