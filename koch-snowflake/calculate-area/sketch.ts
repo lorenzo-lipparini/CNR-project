@@ -68,7 +68,8 @@ window.draw = () => {
   arc(
     0,
     0,
-    globals.circleOptions.radius, globals.circleOptions.radius,
+    globals.circleOptions.radius,
+    globals.circleOptions.radius,
     -Math.PI / 2,
     // arc() gives problems when the start and end angles differ by a multiple of 2pi, this is a quick fix
     -Math.PI / 2 + (
