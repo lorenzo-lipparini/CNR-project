@@ -64,7 +64,7 @@ export default class View extends Animatable {
   public zoom(duration: number, zoomFactor: number): Promise<void> {
     zoomFactor = this.toAbsolute(zoomFactor);
   
-    return this.animate(new ExponentialAnimation<View, 'zoomFactor'>('zoomFactor', duration, zoomFactor * this.zoomFactor).harmonize());
+    return this.animate(new ExponentialAnimation<View, 'zoomFactor'>('zoomFactor', duration, zoomFactor).harmonize());
   }
 
   /**

@@ -9,7 +9,7 @@ import KochCurve from './KochCurve.js';
  */
 export default class KochSnowflake extends Animatable {
 
-  private childCurves: KochCurve[] = [];
+  public childCurves: KochCurve[] = [];
 
  
   /**
