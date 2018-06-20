@@ -2,10 +2,13 @@
 import videoSpecs from '../../lib/videoSpecs.js';
 import FrameCapture from '../../lib/FrameCapture.js';
 import timer from '../../lib/timer.js';
+import Scene from '../../lib/Scene.js';
 
 import Plane2D from '../Plane2D.js';
 import Arrow from '../Arrow.js';
 
+
+const scene = new Scene();
 
 let plane: Plane2D;
 
@@ -16,10 +19,6 @@ window.setup = async () => {
   createCanvas(videoSpecs.resolution.x, videoSpecs.resolution.y);
 
   plane = new Plane2D(height / 5);
-  
-  c = new Arrow(plane, [255, 255, 0], [0.4, 0.5]);
-  z = c.copy();
-  z.color = [255, 255, 255];
 
   ellipseMode(RADIUS);
 
@@ -31,6 +30,14 @@ window.setup = async () => {
 };
 
 async function main() {
+  c = new Arrow(plane, [255, 255, 0], [0.4, 0.5]);
+
+  z = c.copy();
+  z.color = [255, 255, 255];
+
+  scene.add(plane.xyAxes, c, z);
+
+
   await timer(1);
 
   await z.showAngle();
@@ -55,23 +62,17 @@ window.draw = () => {
 
   background(0);
   plane.applyScale();
-
-  plane.xyAxes.show();
   
   noFill();
+  strokeWeight(5 * plane.pixelLength);
 
   stroke(255, 255, 255, 100);
-  strokeWeight(5 * plane.pixelLength);
-
   ellipse(0, 0, 1);
 
-  strokeWeight(5 * plane.pixelLength);
   stroke(255, 0, 0, (z.length <= 2) ? 100 : 255);
-
   ellipse(0, 0, 2);
 
-  c.show();
-  z.show();
+  scene.render();
 
   FrameCapture.update();
 };
