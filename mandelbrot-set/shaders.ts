@@ -86,6 +86,33 @@ const makeBinaryPattern = (inColor: [number, number, number], outColor: [number,
 `);
 
 /**
+ * Creates a shader source which renders the Mandelbrot set using the given colors,
+ * alternating between them as the number of steps increases.
+ * 
+ * @param inColor Color of the points inside the Mandebrot set
+ * @param outColor Color of the poins outside the Mandelbrot set 
+ */
+const makeDiscretePatter = (inColor: [number, number, number], outColors: [number, number, number][])  => {
+  let colorExpr = '';
+  for (let i = 0; i < outColors.length - 1; i++) {
+    const [r, g, b] = outColors[i];
+
+    colorExpr += `: (steps == ${i}) ? vec4(${r}, ${g}, ${b}, 1.0)`;
+  }
+
+  const last = outColors[outColors.length - 1];
+  colorExpr += `: vec4(${last[0]}, ${last[1]}, ${last[2]}, 1.0)`
+
+  const shader = makeFragSrc(`
+    steps = steps - ${outColors.length} * (steps / ${outColors.length});
+
+    gl_FragColor = (steps == -1) ? vec4(${inColor[0]}, ${inColor[1]}, ${inColor[2]}, 1.0)${colorExpr};
+  `);
+
+  return shader;
+}
+
+/**
  * Creates a shader source which renders the Mandelbrot set interpolating between a set of colors.
  * The colors must be given as arrays of three numbers in the range [0, 1] representing the RGB components of the color.
  * 
@@ -127,7 +154,6 @@ function makeLerpPattern(inColor: [number, number, number], outColorSteps: [numb
 export const fragSrcs = {
 
   'black-and-white': makeBinaryPattern([0, 0, 0], [1, 1, 1]),
-  'white-and-black': makeBinaryPattern([1, 1, 1], [0, 0, 0]),
   
   'simple-red': makeFragSrc(`
 
@@ -154,6 +180,13 @@ export const fragSrcs = {
     );
 
   `),
+
+  'bygr': makeDiscretePatter([0, 0, 0], [
+    [0, 0, 1],
+    [1, 1, 0],
+    [0, 1, 0],
+    [1, 0, 0]
+  ]),
 
   'blue-to-red': makeLerpPattern([0, 0, 0], [
     [0.000, 0.278, 0.667],
