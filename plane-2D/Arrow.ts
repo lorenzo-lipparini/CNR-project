@@ -4,9 +4,6 @@ import { Animatable, LinearAnimation, HarmonicAnimation } from '../lib/animation
 import Plane2D from './Plane2D.js';
 
 
-// All the values related to the arrows are measured in units of the complex plane
-// Use scale() before the arrows are drawn to obtain a sensible output
-
 /**
  * Represents an arrow which can be drawn onto the canvas.
  */
@@ -18,6 +15,8 @@ export default class Arrow extends Animatable {
   private animationArrows: Arrow[] = [];
 
   public alpha = 255;
+
+  public drawFromTailProgress = 1;
   
   // Properties used in angle animations
   public drawnAngleFraction = 0; // Fraction of the angle displayed on the screen (see showAngle())
@@ -89,15 +88,21 @@ export default class Arrow extends Animatable {
   }
 
   public show(): void {
+    this.updateAnimations();
+
+    push();
+
+    // Calculate the position of the head of the arrow during drawFromTail() animations
+    const currentHead = [
+      this.tail[0] + (this.head[0] - this.tail[0]) * this.drawFromTailProgress,
+      this.tail[1] + (this.head[1] - this.tail[1]) * this.drawFromTailProgress
+    ];
 
     // Change this value to choose the size of the tips of the arrows
-    const tipHeight = 20 * this.plane.pixelLength;
-
-    this.updateAnimations();
+    const tipHeight = this.drawFromTailProgress * 20 * this.plane.pixelLength;
 
     // Remember that performance is not the priority since just a few arrows will be shown simultaneously
     const showColor = color(this.color[0], this.color[1], this.color[2], this.alpha);
-
 
     // Body of the arrow
 
@@ -105,7 +110,7 @@ export default class Arrow extends Animatable {
     stroke(showColor);
     strokeWeight(5 * this.plane.pixelLength);
 
-    line(this.tail[0], this.tail[1], this.head[0] - tipHeight * Math.cos(this.angle), this.head[1] - tipHeight * Math.sin(this.angle));
+    line(this.tail[0], this.tail[1], currentHead[0] - tipHeight * Math.cos(this.angle), currentHead[1] - tipHeight * Math.sin(this.angle));
 
 
     // Tip of the arrow
@@ -113,7 +118,7 @@ export default class Arrow extends Animatable {
     noStroke();
     fill(showColor);
 
-    translate(this.head[0], this.head[1]);
+    translate(currentHead[0], currentHead[1]);
     
     const tipSize = tipHeight / Math.cos(Math.PI/6);
     triangle(
@@ -122,7 +127,7 @@ export default class Arrow extends Animatable {
       tipSize * Math.cos(this.angle - 5/6 * Math.PI), tipSize * Math.sin(this.angle - 5/6 * Math.PI)
     );
 
-    translate(-this.head[0], -this.head[1]);
+    translate(-currentHead[0], -currentHead[1]);
 
 
     // Angle between the arrow and the x-axis
@@ -141,6 +146,16 @@ export default class Arrow extends Animatable {
     for (const arrow of this.animationArrows) {
       arrow.show();
     }
+
+    pop();
+
+  }
+
+  /**
+   * Plays an animation where the arrow starts collapsed onto its tail and then stretches towards the head.
+   */
+  public drawFromTail(): Promise<void> {
+    return this.animate(new HarmonicAnimation<Arrow, 'drawFromTailProgress'>('drawFromTailProgress', 2, 0, 1));
   }
 
   /**
@@ -180,9 +195,11 @@ export default class Arrow extends Animatable {
     this.head = addend2.head;
     this.tail = addend1.tail;
 
+    this.alpha = 255;
+    await this.drawFromTail();
+
     addend1.fadeOut();
-    addend2.fadeOut();
-    await this.fadeIn();
+    await addend2.fadeOut();
 
     this.animationArrows = [];
   }
