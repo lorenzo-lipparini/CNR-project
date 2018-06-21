@@ -3,6 +3,7 @@ import { vertSrc, fragSrcs } from './shaders.js';
 
 import View from '../lib/View.js';
 
+
 /**
  * Provides a simple API for rendering the Mandelbrot set onto the canvas.
  */
