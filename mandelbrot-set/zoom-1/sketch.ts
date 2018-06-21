@@ -10,7 +10,7 @@ let mandelbrot: MandelbrotRenderer;
 window.setup = () => {
   createCanvas(videoSpecs.resolution.x, videoSpecs.resolution.y, WEBGL);
   
-  mandelbrot = new MandelbrotRenderer([-0.23995, -0.83607], 1/8, 'auto', 'fire-red');
+  mandelbrot = new MandelbrotRenderer([-0.23995, -0.83607], 1/8, 'auto', 'lerp-a');
 
   FrameCapture.acquire();
 
@@ -22,7 +22,7 @@ async function main() {
   await animate(mandelbrot, new ExponentialAnimation<MandelbrotRenderer, 'zoomFactor'>('zoomFactor', 30, 16000));
 
   FrameCapture.stop();
-}
+};
 
 window.draw = () => {
   updateAnimations();
@@ -30,4 +30,4 @@ window.draw = () => {
   mandelbrot.render();
 
   FrameCapture.update();
-}
+};

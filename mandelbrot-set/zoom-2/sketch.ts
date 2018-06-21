@@ -29,4 +29,4 @@ window.draw = () => {
   navigator.render();
 
   FrameCapture.update();
-}
+};

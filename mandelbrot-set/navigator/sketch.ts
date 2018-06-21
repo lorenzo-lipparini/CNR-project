@@ -1,4 +1,6 @@
 
+import videoSpecs from '../../lib/videoSpecs.js';
+
 import { MandelbrotRenderer } from '../mandelbrot.js';
 
 
@@ -7,7 +9,7 @@ let mandelbrot: MandelbrotRenderer;
 let zoomIncrement = 1.1;
 
 window.setup = () => {
-  createCanvas(600, 600, WEBGL);
+  createCanvas(videoSpecs.resolution.x, videoSpecs.resolution.y, WEBGL);
   
   mandelbrot = new MandelbrotRenderer([0, 0], 1/4, 'auto', 'fire-red');
 
@@ -52,4 +54,4 @@ window.keyPressed = () => {
   if (keyCode === ENTER) {
     console.log(mandelbrot.zoomCenter, mandelbrot.zoomFactor);
   }
-}
+};
