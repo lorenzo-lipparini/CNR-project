@@ -5,21 +5,26 @@ import timer from '../../lib/timer.js';
 
 import { MandelbrotRenderer, MandelbrotNavigator } from '../mandelbrot.js';
 
+
 let navigator: MandelbrotNavigator;
 
 window.setup = async () => {
   createCanvas(videoSpecs.resolution.x, videoSpecs.resolution.y, WEBGL);
 
-  navigator = new MandelbrotNavigator(new MandelbrotRenderer([-1.12081, -0.26702], 150, 'auto', 'fire-red'));
+  navigator = new MandelbrotNavigator(new MandelbrotRenderer([-0.5, 0], 1/4, 'auto', 'fire-red'));
 
   FrameCapture.acquire();
 
   await main();
 
   FrameCapture.stop();
-}
+};
 
 async function main() {
+  
+  await timer(1);
+
+  await navigator.zoomToPoint(10, [-1.12081, -0.26702], 150);
   
   await timer(1);
 
@@ -43,4 +48,4 @@ window.draw = () => {
   navigator.render();
 
   FrameCapture.update();
-}
+};
