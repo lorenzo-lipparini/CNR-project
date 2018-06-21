@@ -1,7 +1,9 @@
 
+import { LinearAnimation } from '../lib/animation.js';
+import View from '../lib/View.js';
+
 import { vertSrc, fragSrcs } from './shaders.js';
 
-import View from '../lib/View.js';
 
 /**
  * Provides a simple API for rendering the Mandelbrot set onto the canvas.
@@ -104,6 +106,26 @@ export class MandelbrotNavigator extends View {
 
   public apply(): never {
     throw new Error('MandelbrotRenderer automatically takes care of the scale, so avoid using MandelbrotNavigator.applyScale()');
+  }
+
+  /**
+   * Plays an animation where the camera moves with the given constant velocity vector;
+   * the velocity is expressed as units of the complex plane per seconds,
+   * and it is relative to the zoom factor (meaning that the resulting velocity on the screen will be the same at any zoom level).
+   * 
+   * @param duration The duration of the animation
+   * @param velocity The relative velocity of the camera
+   */
+  public slide(duration: number, velocity: [number, number]) {
+    // Make sure that the velocity on screen is constant by compensating the effect of the zoom
+    velocity = [velocity[0] / this.zoomFactor, velocity[1] / this.zoomFactor];
+
+    const finalZoomCenter: [number, number] = [
+      this.zoomCenter[0] + duration * velocity[0],
+      this.zoomCenter[1] + duration * velocity[1]
+    ];
+
+    return this.animate(new LinearAnimation<MandelbrotNavigator, 'zoomCenter'>('zoomCenter', duration, finalZoomCenter));
   }
 
   /**

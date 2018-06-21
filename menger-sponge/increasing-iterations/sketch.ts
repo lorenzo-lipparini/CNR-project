@@ -1,7 +1,7 @@
 
 import videoSpecs from '../../lib/videoSpecs.js';
 import FrameCapture from '../../lib/FrameCapture.js';
-import { PropertyAnimation, LinearAnimation, Animation } from '../../lib/animation.js';
+import { PropertyAnimation, LinearAnimation } from '../../lib/animation.js';
 import timer from '../../lib/timer.js';
 import Scene from '../../lib/Scene.js';
 
@@ -43,7 +43,7 @@ async function main() {
 
   await timer(1);
 
-  while (mengerSponge.iterations < 3) {
+  while (mengerSponge.iterations < 4) {
     mengerSponge.incrementIterations();
 
     // (flash variant)
