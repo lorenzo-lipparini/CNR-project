@@ -62,7 +62,7 @@ async function main() {
   }
 
   await animate(globals, new ExponentialAnimation<typeof globals, 'zoomFactor'>('zoomFactor', 2, 1.5).harmonize()
-                  .parallel(new HarmonicAnimation<typeof globals, 'xAxisTilt'>('xAxisTilt', 2, 0)));
+                  .parallel(new HarmonicAnimation<typeof globals, 'xAxisTilt'>('xAxisTilt', 2, -0.1)));
   
   await timer(0.5);
   
@@ -76,6 +76,7 @@ async function main() {
 window.draw = () => {
   timer.update();
   updateAnimations();
+
 
   background(0);
 
@@ -94,6 +95,7 @@ window.draw = () => {
   stroke(255, 255, 255);
 
   scene.render();
+
 
   FrameCapture.update();
 };

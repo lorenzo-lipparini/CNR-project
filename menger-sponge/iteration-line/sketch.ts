@@ -22,7 +22,7 @@ window.setup = async () => {
 };
 
 async function main() {
-  const spongeNumber = 3;
+  const spongeNumber = 4;
 
   const mengerSponges: MengerSponge[] = [];
 
@@ -63,6 +63,7 @@ async function main() {
 window.draw = () => {
   timer.update();
 
+
   background(0);
 
   ortho();
@@ -76,6 +77,7 @@ window.draw = () => {
   noStroke();
 
   scene.render();
+
 
   FrameCapture.update();
 }
