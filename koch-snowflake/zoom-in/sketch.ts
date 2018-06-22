@@ -17,6 +17,7 @@ const view = new View();
 window.setup = async () => {
   createCanvas(videoSpecs.resolution.x, videoSpecs.resolution.y);
 
+
   FrameCapture.acquire();
 
   await main();
@@ -41,7 +42,6 @@ async function main() {
     for (const curve of zoomedCurves) {
       curve.incrementIterations();
 
-      // Prevent the 'flash' effect when the new spikes appear
       curve.animateIteration(curve.iterations, bumpUp);
     }
 
@@ -65,7 +65,8 @@ window.draw = () => {
   noFill();
   stroke(255, 255, 255);
   // Ensure that the stroke weight isn't influenced by the zoom factor
-  strokeWeight(1 / view.zoomFactor);
+  // Use a number slightly than one to prevent the 'flash' effect
+  strokeWeight(0.9 / view.zoomFactor);
 
   scale(1);
 
