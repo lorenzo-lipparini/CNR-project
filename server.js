@@ -9,12 +9,14 @@ const express = require('express');
 const bodyParser = require('body-parser');
 
 
-// Removes the data relative to the previous video from the ./out directory
-function clearOutDir() {
-  fs.emptyDirSync('./out');
-  fs.mkdirSync('./out/frames');
-}
-clearOutDir();
+// Start the search of the port from 8000
+let port = 8000;
+
+// Find a port that is not being used, base the search on the existance of a corresponding out folder
+while (fs.existsSync(`./out${++port}`)) { }
+
+fs.mkdirSync(`./out${port}`);
+fs.mkdirSync(`./out${port}/frames`);
 
 
 const app = express();
@@ -40,7 +42,9 @@ let receivedFrames = 0;
 app.get('/video-service/new', (req, res) => {
   console.log('New video requested');
 
-  clearOutDir();
+  // Clear the out folder
+  fs.emptyDirSync(`./out${port}`);
+  fs.mkdirSync(`./out${port}/frames`);
 
   // Reset all the variables
   videoInfo = undefined;
@@ -50,7 +54,7 @@ app.get('/video-service/new', (req, res) => {
 });
 
 app.post('/video-service/push-frame', async ({ body: frame }, res) => {
-  await fs.writeFile(`./out/frames/${frame.id}.png`, frame.data, 'base64');
+  await fs.writeFile(`./out${port}/frames/${frame.id}.png`, frame.data, 'base64');
 
   receivedFrames++;
   checkAllFramesReceived();
@@ -74,7 +78,7 @@ function checkAllFramesReceived() {
 
     console.log('All frames received, running FFmpeg...');
 
-    const RUN_FFMPEG = `ffmpeg -r ${frameRate} -s ${res.x}x${res.y} -i ./out/frames/%d.png -crf 1 -pix_fmt yuv420p ./out/video.mp4`;
+    const RUN_FFMPEG = `ffmpeg -r ${frameRate} -s ${res.x}x${res.y} -i ./out${port}/frames/%d.png -crf 1 -pix_fmt yuv420p ./out${port}/video.mp4`;
     exec(RUN_FFMPEG, () => {
       console.log('Done.\n');
     });
@@ -82,6 +86,6 @@ function checkAllFramesReceived() {
 }
 
 
-app.listen(8080);
-
-console.log('\n=== SERVER RUNNING ===\n');
+app.listen(port, () => {
+  console.log(`\n=== SERVER RUNNING ON PORT ${port} ===\n`);
+});
